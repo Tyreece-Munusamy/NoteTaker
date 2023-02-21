@@ -27,7 +27,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.timestampToFormattedDate
 import com.example.progressupdatedemo.utils.toJson
 import com.google.firebase.Timestamp
@@ -64,7 +64,7 @@ fun NoteDetailsScreen(
             )
         }, navigationIcon = {
             IconButton(onClick = {
-                navController.navigate("${ApplicationScreens.HomeScreen.name}/$fromTab")
+                navController.navigate(Screen.HomeScreen.withArgs(fromTab!!))
             }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
@@ -81,7 +81,7 @@ fun NoteDetailsScreen(
         ) {
             IconButton(onClick = {
                 val jsonNote = updatedNote.value.toJson()
-                navController.navigate("${ApplicationScreens.UpdateNoteScreen.name}/$jsonNote/$fromTab")
+                navController.navigate(Screen.UpdateNoteScreen.withArgs(jsonNote!!, fromTab!!))
             }) {
                 Icon(
                     painter = painterResource(id = R.drawable.pencil),
@@ -158,7 +158,7 @@ fun NoteDetailsScreenContent(
             }) {
                 isLoading.value = false
                 showAlertDialog.value = false
-                navController.navigate("${ApplicationScreens.HomeScreen.name}/$fromTab")
+                navController.navigate(Screen.HomeScreen.withArgs(fromTab!!))
             }
         }
     }

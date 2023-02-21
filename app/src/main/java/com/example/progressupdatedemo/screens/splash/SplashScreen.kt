@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.components.ApplicationIcon
 import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -58,13 +58,11 @@ private suspend fun animateScaleIncrease(scale: Animatable<Float, AnimationVecto
 }
 
 private fun navigateToLoginScreenWithNoPresetDetails(navController: NavController) {
-    val baseLoginScreenNavigationRoute = ApplicationScreens.LoginScreen.name
     val emptyLoginDetailsHolder = LoginDetailsHolder().toJson().toString()
-    navController.navigate("${baseLoginScreenNavigationRoute}/${emptyLoginDetailsHolder}")
+    navController.navigate(Screen.LoginScreen.withArgs(emptyLoginDetailsHolder))
 }
 
 private fun navigateToHomeScreen(navController: NavController) {
-    val baseHomeScreenNavigationRoute = ApplicationScreens.HomeScreen.name
-    navController.navigate("${baseHomeScreenNavigationRoute}/notes")
+    navController.navigate(Screen.HomeScreen.withArgs("notes"))
 }
 

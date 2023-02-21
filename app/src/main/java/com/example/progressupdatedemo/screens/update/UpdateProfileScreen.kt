@@ -34,7 +34,7 @@ import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.NameInputTextField
 import com.example.progressupdatedemo.models.User
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 
 @OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -96,7 +96,7 @@ fun UpdateProfileScreen(
                 if (isUserProfileUpdated) {
                     showSaveChangesAlertDialog.value = true
                 } else {
-                    navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
                 }
             }) {
                 Icon(
@@ -114,7 +114,7 @@ fun UpdateProfileScreen(
                 isLoading = isLoading,
                 onDiscard = {
                     showSaveChangesAlertDialog.value = false
-                    navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
 
                 }) {
                 isLoading.value = true
@@ -125,9 +125,9 @@ fun UpdateProfileScreen(
                     onFailure = {
                         Toast.makeText(context, "Failed to update profile", Toast.LENGTH_LONG)
                             .show()
-                        navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                        navController.navigate(Screen.HomeScreen.withArgs("profile"))
                     }) {
-                    navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
                     isLoading.value = false
                 }
             }
@@ -190,10 +190,10 @@ fun UpdateProfileScreen(
                                     context, "Failed to update profile", Toast.LENGTH_LONG
                                 ).show()
                             }) {
-                            navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                            navController.navigate(Screen.HomeScreen.withArgs("profile"))
                         }
                     } else {
-                        navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                        navController.navigate(Screen.HomeScreen.withArgs("profile"))
                     }
                 }
                 Spacer(modifier = Modifier.width(7.dp))
@@ -202,7 +202,7 @@ fun UpdateProfileScreen(
                         .weight(1f, true)
                         .height(46.dp), text = "Cancel"
                 ) {
-                    navController.navigate("${ApplicationScreens.HomeScreen.name}/profile")
+                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
                 }
             }
         }

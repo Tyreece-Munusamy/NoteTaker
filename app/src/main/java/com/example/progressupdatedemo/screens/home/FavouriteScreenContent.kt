@@ -32,7 +32,7 @@ import com.example.progressupdatedemo.components.textfields.GeneralOutlinedInput
 import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -101,7 +101,7 @@ fun FavouritesScreenContent(
                                 .padding(bottom = 15.dp)
                                 .clickable {
                                     val jsonNote = note.toJson()!!
-                                    navController.navigate("${ApplicationScreens.NoteDetailsScreen.name}/$jsonNote/favourites")
+                                    navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote, "favourites"))
                                 },
                             border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
                             elevation = 4.dp

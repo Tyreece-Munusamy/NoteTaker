@@ -1,7 +1,6 @@
 package com.example.progressupdatedemo.screens.home
 
 import android.annotation.SuppressLint
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.progressupdatedemo.DoublePressToExit
 import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.CenterTopAppBar
 import com.example.progressupdatedemo.components.ColumnWithCenteredContent
@@ -40,7 +36,7 @@ import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList
 import com.example.progressupdatedemo.models.User
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -67,7 +63,7 @@ fun HomeScreen(
     }
 
     val user = remember {
-        mutableStateOf(User("","","",""))
+        mutableStateOf(User("", "", "", ""))
     }
     var topBar: @Composable () -> Unit = { Box { } }
 
@@ -82,7 +78,12 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = screenTitle, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    Text(
+                        text = screenTitle,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -97,7 +98,12 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = screenTitle, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                    Text(
+                        text = screenTitle,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -116,9 +122,7 @@ fun HomeScreen(
                 }, actions = {
                     IconButton(onClick = {
                         navController.navigate(
-                            "${ApplicationScreens.UpdateProfileScreen.name}/${
-                                user.value.toJson().toString()
-                            }"
+                            Screen.UpdateProfileScreen.withArgs(user.value.toJson().toString())
                         )
                     }, enabled = !isLoading) {
                         if (!isLoading) {
@@ -245,7 +249,7 @@ fun HomeScreen(
 private fun FloatingActionButton(navController: NavController) {
     FloatingActionButton(
         modifier = Modifier.size(65.dp),
-        onClick = { navController.navigate(ApplicationScreens.CreateNoteScreen.name) },
+        onClick = { navController.navigate(Screen.CreateNoteScreen.route) },
         backgroundColor = MaterialTheme.colors.primary
     ) {
         Icon(
@@ -319,7 +323,7 @@ fun HomeScreenContent(
                                 .padding(bottom = 15.dp)
                                 .clickable {
                                     val jsonNote = note.toJson()!!
-                                    navController.navigate("${ApplicationScreens.NoteDetailsScreen.name}/$jsonNote/notes")
+                                    navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote, "notes"))
                                 },
                             border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
                             elevation = 4.dp

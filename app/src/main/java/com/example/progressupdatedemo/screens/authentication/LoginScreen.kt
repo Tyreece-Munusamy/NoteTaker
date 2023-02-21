@@ -28,13 +28,18 @@ import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
 import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.models.SignUpDetailsHolder
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
 @Composable
-fun LoginScreen(navController: NavController, loginDetailsHolder: LoginDetailsHolder) {
+fun LoginScreen(
+    navController: NavController,
+    loginDetailsHolder: LoginDetailsHolder,
+    authenticationViewModel: AuthenticationViewModel = hiltViewModel(),
+) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        LoginScreenContent(navController = navController, loginDetailsHolder = loginDetailsHolder)
+        LoginScreenContent(navController, authenticationViewModel, loginDetailsHolder)
     }
 }
 
@@ -42,28 +47,85 @@ fun LoginScreen(navController: NavController, loginDetailsHolder: LoginDetailsHo
 @Composable
 private fun LoginScreenContent(
     navController: NavController,
-    authenticationViewModel: AuthenticationViewModel = hiltViewModel(),
+    authenticationViewModel: AuthenticationViewModel,
     loginDetailsHolder: LoginDetailsHolder,
 ) {
     val email = remember {
         mutableStateOf(loginDetailsHolder.email)
     }
+
     val password = remember {
         mutableStateOf("")
     }
-    val passwordVisibility = remember {
+
+    val isPasswordVisible = remember {
         mutableStateOf(false)
     }
-    val isUserInputValid = remember(email.value, password.value) {
-        email.value.trim().isNotEmpty() && password.value.trim().isNotEmpty()
+
+    val isEmailAndPasswordValid = remember(email.value, password.value) {
+        authenticationViewModel.validateEmailAndPassword(email.value, password.value)
     }
-    val isLoading = remember {
-        mutableStateOf(false)
-    }
+
+    val isAuthenticationViewModelProcessingRequest =
+        authenticationViewModel.isProcessingAuthenticationRequest
 
     val localContext = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    LoginScreenAccountIcon()
+
+    ColumnWithCenteredContent(
+        modifier = Modifier
+            .padding(30.dp)
+            .fillMaxSize()
+    ) {
+        LoginPromptText()
+        Spacer(modifier = Modifier.height(30.dp))
+        EmailInputTextField(emailState = email)
+        PasswordInputTextField(passwordState = password,
+            passwordVisibility = isPasswordVisible,
+            onAction = KeyboardActions {
+                keyboardController?.hide()
+                if (isEmailAndPasswordValid) {
+                    signInUser(
+                        isAuthenticationViewModelProcessingRequest,
+                        email,
+                        password,
+                        authenticationViewModel,
+                        localContext,
+                        navController
+                    )
+                } else {
+                    Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            })
+        LoginButton(isAuthenticationViewModelProcessingRequest, isEmailAndPasswordValid) {
+            if (isEmailAndPasswordValid) {
+                signInUser(
+                    loadingState = isAuthenticationViewModelProcessingRequest,
+                    emailState = email,
+                    passwordState = password,
+                    authenticationViewModel = authenticationViewModel,
+                    context = localContext,
+                    navController = navController
+                )
+            } else {
+                Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT)
+                    .show()
+                navController.navigate(
+                    Screen.LoginScreen.withArgs(
+                        LoginDetailsHolder().toJson().toString()
+                    )
+                )
+            }
+        }
+    }
+    SignUpPromptTextWithLink(navController = navController)
+}
+
+@Composable
+private fun LoginScreenAccountIcon() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -79,51 +141,6 @@ private fun LoginScreenContent(
             modifier = Modifier.size(95.dp)
         )
     }
-
-    ColumnWithCenteredContent(
-        modifier = Modifier
-            .padding(30.dp)
-            .fillMaxSize()
-    ) {
-        LoginPromptText()
-        Spacer(modifier = Modifier.height(30.dp))
-        EmailInputTextField(emailState = email)
-        PasswordInputTextField(passwordState = password,
-            passwordVisibility = passwordVisibility,
-            onAction = KeyboardActions {
-                keyboardController?.hide()
-                if (isUserInputValid) {
-                    signInUser(
-                        loadingState = isLoading,
-                        emailState = email,
-                        passwordState = password,
-                        authenticationViewModel = authenticationViewModel,
-                        context = localContext,
-                        navController = navController
-                    )
-                } else {
-                    Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT).show()
-                }
-            })
-        LoginButton(isLoading, isUserInputValid) {
-            if (isUserInputValid) {
-                signInUser(
-                    loadingState = isLoading,
-                    emailState = email,
-                    passwordState = password,
-                    authenticationViewModel = authenticationViewModel,
-                    context = localContext,
-                    navController = navController
-                )
-            } else {
-                Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT).show()
-                navController.navigate(ApplicationScreens.LoginScreen.name)
-            }
-        }
-    }
-    SignUpPromptTextWithLink(navController = navController)
-
-
 }
 
 fun signInUser(
@@ -135,25 +152,20 @@ fun signInUser(
     navController: NavController,
 ) {
     loadingState.value = true
-    authenticationViewModel.signInUserWithEmailAndPassword(
-        emailState.value,
-        passwordState.value,
-        onFailure = {
-            Toast.makeText(
-                context, "Please enter a valid email address or password", Toast.LENGTH_SHORT
-            ).show()
-            val loginDetailsHolder = LoginDetailsHolder(emailState.value)
-            loadingState.value = false
-            emailState.value = ""
-            passwordState.value = ""
-            navController.navigate(
-                "${ApplicationScreens.LoginScreen.name}/${
-                    loginDetailsHolder.toJson().toString()
-                }"
-            )
-        }) {
+    authenticationViewModel.signInUser(emailState.value, passwordState.value, onFailure = {
+        Toast.makeText(
+            context, "Please enter a valid email address or password", Toast.LENGTH_SHORT
+        ).show()
+        val loginDetailsHolder = LoginDetailsHolder(emailState.value)
         loadingState.value = false
-        navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+        emailState.value = ""
+        passwordState.value = ""
+        navController.navigate(
+            Screen.LoginScreen.withArgs(loginDetailsHolder.toJson().toString())
+        )
+    }) {
+        loadingState.value = false
+        navController.navigate(Screen.HomeScreen.withArgs("notes"))
     }
 }
 
@@ -217,7 +229,7 @@ private fun SignUpPromptTextWithLink(navController: NavController) {
         ) {
             Text(text = "Don't have an account? ")
             Text(text = "Sign up", color = Color.Blue, modifier = Modifier.clickable {
-                navController.navigate(ApplicationScreens.SignUpScreen.name)
+                navController.navigate(Screen.SignUpScreen.withArgs(SignUpDetailsHolder().toJson().toString()))
             })
         }
     }

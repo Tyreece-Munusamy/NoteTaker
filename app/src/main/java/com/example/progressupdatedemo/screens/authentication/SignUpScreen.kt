@@ -30,12 +30,15 @@ import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.NameInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.models.LoginDetailsHolder
+import com.example.progressupdatedemo.models.SignUpDetailsHolder
+import com.example.progressupdatedemo.navigation.Screen
+import com.example.progressupdatedemo.utils.toJson
 
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(navController: NavController, signUpDetailsHolder: SignUpDetailsHolder) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        SignUpScreenContent(navController)
+        SignUpScreenContent(navController, signUpDetailsHolder)
     }
 }
 
@@ -43,17 +46,18 @@ fun SignUpScreen(navController: NavController) {
 @Composable
 private fun SignUpScreenContent(
     navController: NavController,
+    signUpDetailsHolder: SignUpDetailsHolder,
     authenticationViewModel: AuthenticationViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val firstNameState = remember {
-        mutableStateOf("")
+        mutableStateOf(signUpDetailsHolder.firstName)
     }
     val lastNameState = remember {
-        mutableStateOf("")
+        mutableStateOf(signUpDetailsHolder.lastName)
     }
     val emailState = remember {
-        mutableStateOf("")
+        mutableStateOf(signUpDetailsHolder.email)
     }
     val passwordState = remember {
         mutableStateOf("")
@@ -111,8 +115,9 @@ private fun SignUpScreenContent(
                     authenticationViewModel = authenticationViewModel
                 )
             } else {
+                val signUpDetailsHolderToJson = SignUpDetailsHolder(firstNameState.value, lastNameState.value, emailState.value)
                 Toast.makeText(context, "Please enter valid details", Toast.LENGTH_SHORT).show()
-                navController.navigate(ApplicationScreens.SignUpScreen.name)
+                navController.navigate(Screen.SignUpScreen.withArgs(signUpDetailsHolderToJson.toJson().toString()))
             }
         }
     }
@@ -129,7 +134,7 @@ fun createUserAccount(
     authenticationViewModel: AuthenticationViewModel,
 ) {
     isLoading.value = true
-    authenticationViewModel.createUserWithEmailAndPassword(firstNameState.value,lastNameState.value,
+    authenticationViewModel.createUser(firstNameState.value,lastNameState.value,
         email.value,
         password.value,
         onFailure = {
@@ -139,7 +144,7 @@ fun createUserAccount(
             password.value = ""
         }) {
         isLoading.value = false
-        navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+        navController.navigate(Screen.HomeScreen.withArgs("notes"))
     }
 }
 
@@ -203,7 +208,7 @@ private fun LoginPromptTextWithLink(navController: NavController) {
         ) {
             Text(text = "Already have an account? ")
             Text(text = "Login", color = Color.Blue, modifier = Modifier.clickable {
-                navController.navigate(ApplicationScreens.LoginScreen.name)
+                navController.navigate(Screen.LoginScreen.withArgs(LoginDetailsHolder().toJson().toString()))
             })
         }
     }

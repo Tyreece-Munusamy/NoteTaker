@@ -1,7 +1,10 @@
 package com.example.progressupdatedemo.screens.authentication
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import com.example.progressupdatedemo.repository.FirestoreRepository
+import com.example.progressupdatedemo.utils.isValid
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
@@ -9,11 +12,40 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class AuthenticationViewModel @Inject constructor(private val repository: FirestoreRepository) :
-    ViewModel() {
-    private val firebaseAuth = FirebaseAuth.getInstance()
+class AuthenticationViewModel @Inject constructor(
+    private val repository: FirestoreRepository,
+    private val firebaseAuth: FirebaseAuth,
+) : ViewModel() {
 
-    fun signInUserWithEmailAndPassword(
+    val isProcessingAuthenticationRequest = mutableStateOf(false)
+
+    fun signInUser(
+        email: String,
+        password: String,
+        onFailure: () -> Unit,
+        onSuccess: () -> Unit,
+    ) {
+        isProcessingAuthenticationRequest.value = true
+        signInUserWithEmailAndPassword(email, password, onFailure, onSuccess)
+    }
+
+    fun createUser(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+        onFailure: () -> Unit,
+        onSuccess: () -> Unit,
+    ) {
+        isProcessingAuthenticationRequest.value = true
+        createUserWithEmailAndPassword(firstName, lastName, email, password, onFailure, onSuccess)
+    }
+
+    fun validateEmailAndPassword(email: String, password: String): Boolean {
+        return email.isValid() && password.isValid()
+    }
+
+    private fun signInUserWithEmailAndPassword(
         email: String,
         password: String,
         onFailure: () -> Unit,
@@ -23,7 +55,7 @@ class AuthenticationViewModel @Inject constructor(private val repository: Firest
         invokeOnSuccessOrOnFailureOnTaskCompletion(taskWithAuthResult, onSuccess, onFailure)
     }
 
-    fun createUserWithEmailAndPassword(
+    private fun createUserWithEmailAndPassword(
         firstName: String,
         lastName: String,
         email: String,
@@ -36,6 +68,7 @@ class AuthenticationViewModel @Inject constructor(private val repository: Firest
             onSuccess.invoke()
             repository.createUser(firstName, lastName)
         }
+        isProcessingAuthenticationRequest.value = true
         invokeOnSuccessOrOnFailureOnTaskCompletion(
             taskWithAuthResult, persistCreatedUserToFirestoreOnSuccess, onFailure
         )
@@ -49,8 +82,10 @@ class AuthenticationViewModel @Inject constructor(private val repository: Firest
         taskWithAuthResult.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 onSuccess.invoke()
+                isProcessingAuthenticationRequest.value = false
             } else {
                 onFailure.invoke()
+                isProcessingAuthenticationRequest.value = false
             }
         }
     }

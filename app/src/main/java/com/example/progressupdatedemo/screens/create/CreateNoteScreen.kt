@@ -32,8 +32,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.navigation.ApplicationScreens
-import com.example.progressupdatedemo.screens.update.SaveChangedAlertDialog
+import com.example.progressupdatedemo.navigation.Screen
 import com.google.firebase.Timestamp
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -106,7 +105,7 @@ fun CreateNoteScreenContent(
         SaveNoteAlertDialog(showAlertDialog = showSaveNoteAlertDialog,
             isLoading = isAlertDialogLoading,
             onDiscard = {
-                navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+                navController.navigate(Screen.HomeScreen.withArgs("notes"))
 
             }) {
             isAlertDialogLoading.value = true
@@ -119,11 +118,11 @@ fun CreateNoteScreenContent(
                 isAlertDialogLoading.value = false
             }) {
                 isAlertDialogLoading.value = false
-                navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+                navController.navigate(Screen.HomeScreen.withArgs("notes"))
             }
         }
     } else if (showSaveNoteAlertDialog.value && !userInputIsValid) {
-        navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+        navController.navigate(Screen.HomeScreen.withArgs("notes"))
         showSaveNoteAlertDialog.value = false
     }
 
@@ -173,7 +172,7 @@ fun CreateNoteScreenContent(
                         isLoading.value = false
                         Toast.makeText(context, "Note creation failed", Toast.LENGTH_LONG).show()
                     }) {
-                        navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+                        navController.navigate(Screen.HomeScreen.withArgs("notes"))
                         isLoading.value = false
                     }
                 } else {
@@ -204,7 +203,7 @@ fun CreateNoteScreenContent(
                         isLoading.value = false
                         Toast.makeText(context, "Note creation failed", Toast.LENGTH_LONG).show()
                     }) {
-                        navController.navigate("${ApplicationScreens.HomeScreen.name}/notes")
+                        navController.navigate(Screen.HomeScreen.withArgs("notes"))
                         isLoading.value = false
                     }
                 } else {

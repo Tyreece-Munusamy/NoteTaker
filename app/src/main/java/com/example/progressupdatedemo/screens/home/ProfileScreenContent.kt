@@ -22,7 +22,7 @@ import com.example.progressupdatedemo.components.ColumnWithCenteredContent
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.models.LoginDetailsHolder
 import com.example.progressupdatedemo.models.User
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -84,7 +84,9 @@ fun ProfileScreenContent(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "First Name", fontSize = 11.sp, style = MaterialTheme.typography.caption
+                        text = "First Name",
+                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.caption
                     )
                     Text(
                         modifier = Modifier.padding(start = 10.dp),
@@ -102,7 +104,9 @@ fun ProfileScreenContent(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "Last Name", fontSize = 11.sp, style = MaterialTheme.typography.caption
+                        text = "Last Name",
+                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.caption
                     )
                     Text(
                         modifier = Modifier.padding(start = 10.dp),
@@ -141,8 +145,7 @@ fun ProfileScreenContent(
                 ) {
                     AppButton(
                         text = "Log out",
-                        modifier = Modifier
-                            .weight(1f),
+                        modifier = Modifier.weight(1f),
                         backgroundColor = Color(0xFFDe1313),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -150,7 +153,9 @@ fun ProfileScreenContent(
                     ) {
                         isLoading.value = true
                         homeScreenViewModel.signOut()
-                        navController.navigate("${ApplicationScreens.LoginScreen.name}/${LoginDetailsHolder().toJson().toString()}")
+                        navController.navigate(
+                            Screen.LoginScreen.withArgs(LoginDetailsHolder().toJson().toString())
+                        )
                         isLoading.value = false
                     }
                 }

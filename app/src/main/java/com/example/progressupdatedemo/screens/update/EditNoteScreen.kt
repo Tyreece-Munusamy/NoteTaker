@@ -31,7 +31,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.navigation.ApplicationScreens
+import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 import com.google.firebase.Timestamp
 
@@ -180,11 +180,11 @@ fun EditNoteScreenContent(
                     }) {
                         val jsonNote = updateNote.toJson()
                         isLoading.value = false
-                        navController.navigate("${ApplicationScreens.NoteDetailsScreen.name}/$jsonNote/$fromTab")
+                        navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote!!, fromTab))
                     }
                 } else {
                     val jsonNote = note.toJson()
-                    navController.navigate("${ApplicationScreens.NoteDetailsScreen.name}/$jsonNote/$fromTab")
+                    navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote!!, fromTab))
                 }
             }
             Spacer(modifier = Modifier.width(7.dp))
@@ -194,7 +194,7 @@ fun EditNoteScreenContent(
                     .height(46.dp), text = "Cancel"
             ) {
                 val jsonNote = note.toJson()
-                navController.navigate("${ApplicationScreens.NoteDetailsScreen.name}/$jsonNote/$fromTab")
+                navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote!!, fromTab))
             }
 
         }

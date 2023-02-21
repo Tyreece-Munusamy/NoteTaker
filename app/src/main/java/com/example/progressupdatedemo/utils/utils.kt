@@ -19,3 +19,7 @@ fun <A> String.fromJson(type: Class<A>): A {
 fun <A> A.toJson(): String? {
     return Gson().toJson(this)
 }
+
+fun String.isValid(): Boolean {
+    return this.trim().isNotEmpty()
+}
