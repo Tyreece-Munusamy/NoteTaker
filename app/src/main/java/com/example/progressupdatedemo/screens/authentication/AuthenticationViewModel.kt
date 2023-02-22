@@ -1,7 +1,6 @@
 package com.example.progressupdatedemo.screens.authentication
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.example.progressupdatedemo.utils.isValid
@@ -41,8 +40,12 @@ class AuthenticationViewModel @Inject constructor(
         createUserWithEmailAndPassword(firstName, lastName, email, password, onFailure, onSuccess)
     }
 
-    fun validateEmailAndPassword(email: String, password: String): Boolean {
+    fun validateLoginDetails(email: String, password: String): Boolean {
         return email.isValid() && password.isValid()
+    }
+
+    fun validateSignUpDetails(firstName: String, lastName: String, email: String, password: String): Boolean {
+        return firstName.isValid() && lastName.isValid() && email.isValid() && password.isValid()
     }
 
     private fun signInUserWithEmailAndPassword(
@@ -68,7 +71,6 @@ class AuthenticationViewModel @Inject constructor(
             onSuccess.invoke()
             repository.createUser(firstName, lastName)
         }
-        isProcessingAuthenticationRequest.value = true
         invokeOnSuccessOrOnFailureOnTaskCompletion(
             taskWithAuthResult, persistCreatedUserToFirestoreOnSuccess, onFailure
         )

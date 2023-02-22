@@ -1,4 +1,4 @@
-package com.example.progressupdatedemo.components
+package com.example.progressupdatedemo.components.icons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,30 +11,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progressupdatedemo.R
 
 @Composable
-@Preview
-fun NoFavouritesIcon(modifier: Modifier = Modifier) {
+fun ApplicationIcon(modifier: Modifier = Modifier, color: Color = Color.Black) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.heart),
+            painter = painterResource(id = R.drawable.notebook),
             contentDescription = "",
             modifier = Modifier.size(80.dp),
-            tint = Color.LightGray
+            tint = color
         )
-        Text(
-            text = "You don't have any favourites",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.LightGray
-        )
+        Text(text = "Note Taker", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
     }
 }

@@ -1,16 +1,5 @@
 package com.example.progressupdatedemo.navigation
 
-//enum class ApplicationScreens {
-//    SplashScreen,
-//    SignUpScreen,
-//    LoginScreen,
-//    HomeScreen,
-//    NoteDetailsScreen,
-//    CreateNoteScreen,
-//    UpdateNoteScreen,
-//    UpdateProfileScreen,
-//}
-
 sealed class Screen(val route: String) {
     object SplashScreen : Screen("splash_screen")
     object SignUpScreen : Screen("sign_up_screen")

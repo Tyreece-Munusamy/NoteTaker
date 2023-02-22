@@ -21,7 +21,7 @@ fun OutlinedInputTextField(
     modifier: Modifier = Modifier,
     valueState: MutableState<String>,
     labelId: String,
-    enabled: Boolean,
+    enabled: Boolean = true,
     isSingleLine: Boolean,
     icon: @Composable () -> Unit,
     keyboardType: KeyboardType = KeyboardType.Number,

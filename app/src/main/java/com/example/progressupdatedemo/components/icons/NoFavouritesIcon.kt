@@ -1,9 +1,8 @@
-package com.example.progressupdatedemo.components
+package com.example.progressupdatedemo.components.icons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -19,20 +18,20 @@ import com.example.progressupdatedemo.R
 
 @Composable
 @Preview
-fun NoNotesIcon(modifier: Modifier = Modifier) {
+fun NoFavouritesIcon(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.notebook),
+            painter = painterResource(id = R.drawable.heart),
             contentDescription = "",
             modifier = Modifier.size(80.dp),
             tint = Color.LightGray
         )
         Text(
-            text = "You don't have any notes",
+            text = "You don't have any favourites",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.LightGray

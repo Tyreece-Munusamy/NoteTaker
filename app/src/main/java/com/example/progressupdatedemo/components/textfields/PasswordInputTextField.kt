@@ -21,7 +21,7 @@ import com.example.progressupdatedemo.R
 @Composable
 fun PasswordInputTextField(
     modifier: Modifier = Modifier,
-    passwordState: MutableState<String>,
+    password: MutableState<String>,
     labelId: String = "Password",
     enabled: Boolean = true,
     passwordVisibility: MutableState<Boolean>,
@@ -31,8 +31,8 @@ fun PasswordInputTextField(
     val visualTransformation =
         if (passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation()
     OutlinedTextField(
-        value = passwordState.value,
-        onValueChange = { passwordState.value = it },
+        value = password.value,
+        onValueChange = { password.value = it },
         label = { Text(text = labelId) },
         singleLine = true,
         textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colors.onBackground),

@@ -1,8 +1,9 @@
-package com.example.progressupdatedemo.components
+package com.example.progressupdatedemo.components.icons
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -11,12 +12,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.progressupdatedemo.R
 
 @Composable
-fun ApplicationIcon(modifier: Modifier = Modifier, color: Color = Color.Black) {
+@Preview
+fun NoNotesIcon(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -26,8 +29,13 @@ fun ApplicationIcon(modifier: Modifier = Modifier, color: Color = Color.Black) {
             painter = painterResource(id = R.drawable.notebook),
             contentDescription = "",
             modifier = Modifier.size(80.dp),
-            tint = color
+            tint = Color.LightGray
         )
-        Text(text = "Note Taker", fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "You don't have any notes",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.LightGray
+        )
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -63,7 +64,7 @@ private fun LoginScreenContent(
     }
 
     val isEmailAndPasswordValid = remember(email.value, password.value) {
-        authenticationViewModel.validateEmailAndPassword(email.value, password.value)
+        authenticationViewModel.validateLoginDetails(email.value, password.value)
     }
 
     val isAuthenticationViewModelProcessingRequest =
@@ -81,47 +82,65 @@ private fun LoginScreenContent(
     ) {
         LoginPromptText()
         Spacer(modifier = Modifier.height(30.dp))
-        EmailInputTextField(emailState = email)
-        PasswordInputTextField(passwordState = password,
-            passwordVisibility = isPasswordVisible,
-            onAction = KeyboardActions {
-                keyboardController?.hide()
-                if (isEmailAndPasswordValid) {
-                    signInUser(
-                        isAuthenticationViewModelProcessingRequest,
-                        email,
-                        password,
-                        authenticationViewModel,
-                        localContext,
-                        navController
-                    )
-                } else {
-                    Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT)
-                        .show()
-                }
-            })
-        LoginButton(isAuthenticationViewModelProcessingRequest, isEmailAndPasswordValid) {
-            if (isEmailAndPasswordValid) {
-                signInUser(
-                    loadingState = isAuthenticationViewModelProcessingRequest,
-                    emailState = email,
-                    passwordState = password,
-                    authenticationViewModel = authenticationViewModel,
-                    context = localContext,
-                    navController = navController
-                )
-            } else {
-                Toast.makeText(localContext, "Please enter valid details", Toast.LENGTH_SHORT)
-                    .show()
-                navController.navigate(
-                    Screen.LoginScreen.withArgs(
-                        LoginDetailsHolder().toJson().toString()
-                    )
-                )
-            }
-        }
+        EmailInputField(email)
+        PasswordInputField(
+            password,
+            isPasswordVisible,
+            keyboardController,
+        )
+        LoginButton(
+            isAuthenticationViewModelProcessingRequest,
+            isEmailAndPasswordValid,
+            email,
+            password,
+            authenticationViewModel,
+            localContext,
+            navController
+        )
     }
-    SignUpPromptTextWithLink(navController = navController)
+    SignUpPromptTextWithLink(
+        navController, isAuthenticationViewModelProcessingRequest, localContext
+    )
+}
+
+@Composable
+private fun LoginButton(
+    isAuthenticationViewModelProcessingRequest: MutableState<Boolean>,
+    isEmailAndPasswordValid: Boolean,
+    email: MutableState<String>,
+    password: MutableState<String>,
+    authenticationViewModel: AuthenticationViewModel,
+    localContext: Context,
+    navController: NavController,
+) {
+    LoginScreenButton(isAuthenticationViewModelProcessingRequest, isEmailAndPasswordValid) {
+        signInUser(
+            emailState = email,
+            passwordState = password,
+            authenticationViewModel = authenticationViewModel,
+            context = localContext,
+            navController = navController
+        )
+    }
+}
+
+@Composable
+private fun EmailInputField(email: MutableState<String>) {
+    EmailInputTextField(emailState = email)
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun PasswordInputField(
+    password: MutableState<String>,
+    isPasswordVisible: MutableState<Boolean>,
+    keyboardController: SoftwareKeyboardController?,
+) {
+    PasswordInputTextField(password = password,
+        passwordVisibility = isPasswordVisible,
+        onAction = KeyboardActions {
+            keyboardController?.hide()
+        })
 }
 
 @Composable
@@ -135,38 +154,54 @@ private fun LoginScreenAccountIcon() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(45.dp))
-        Icon(
-            painter = painterResource(id = R.drawable.account_circle),
-            contentDescription = "Account Icon",
-            modifier = Modifier.size(95.dp)
-        )
+        AccountIcon()
     }
 }
 
-fun signInUser(
-    loadingState: MutableState<Boolean>,
+@Composable
+private fun AccountIcon() {
+    Icon(
+        painter = painterResource(id = R.drawable.account_circle),
+        contentDescription = "Account Icon",
+        modifier = Modifier.size(95.dp)
+    )
+}
+
+private fun signInUser(
     emailState: MutableState<String>,
     passwordState: MutableState<String>,
     authenticationViewModel: AuthenticationViewModel,
     context: Context,
     navController: NavController,
 ) {
-    loadingState.value = true
-    authenticationViewModel.signInUser(emailState.value, passwordState.value, onFailure = {
-        Toast.makeText(
-            context, "Please enter a valid email address or password", Toast.LENGTH_SHORT
-        ).show()
-        val loginDetailsHolder = LoginDetailsHolder(emailState.value)
-        loadingState.value = false
-        emailState.value = ""
-        passwordState.value = ""
-        navController.navigate(
-            Screen.LoginScreen.withArgs(loginDetailsHolder.toJson().toString())
-        )
-    }) {
-        loadingState.value = false
-        navController.navigate(Screen.HomeScreen.withArgs("notes"))
-    }
+    authenticationViewModel.signInUser(email = emailState.value,
+        password = passwordState.value,
+        onFailure = {
+            showInvalidEmailOrPasswordToast(context)
+            val loginDetailsHolder = LoginDetailsHolder(emailState.value)
+            navigateToLoginScreenWithPresetEmail(navController, loginDetailsHolder)
+        },
+        onSuccess = {
+            navigateToHomeScreen(navController)
+        })
+}
+
+private fun navigateToLoginScreenWithPresetEmail(
+    navController: NavController,
+    loginDetailsHolder: LoginDetailsHolder,
+) {
+    navController.navigate(Screen.LoginScreen.withArgs(loginDetailsHolder.toJson().toString()))
+}
+
+private fun navigateToHomeScreen(navController: NavController) {
+    navController.navigate(Screen.HomeScreen.withArgs("notes"))
+}
+
+
+private fun showInvalidEmailOrPasswordToast(context: Context) {
+    Toast.makeText(
+        context, "Please enter a valid email address or password", Toast.LENGTH_SHORT
+    ).show()
 }
 
 @Composable
@@ -176,18 +211,28 @@ private fun LoginPromptText() {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "Login", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.h4)
-        Text(
-            text = "Please sign in to continue",
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.subtitle1,
-            color = Color.LightGray
-        )
+        LoginText()
+        SignInToContinueText()
     }
 }
 
 @Composable
-private fun LoginButton(
+private fun LoginText() {
+    Text(text = "Login", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.h4)
+}
+
+@Composable
+private fun SignInToContinueText() {
+    Text(
+        text = "Please sign in to continue",
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.subtitle1,
+        color = Color.LightGray
+    )
+}
+
+@Composable
+private fun LoginScreenButton(
     loadingState: MutableState<Boolean>,
     isEnabled: Boolean,
     onClick: () -> Unit,
@@ -214,7 +259,11 @@ private fun LoginButton(
 }
 
 @Composable
-private fun SignUpPromptTextWithLink(navController: NavController) {
+private fun SignUpPromptTextWithLink(
+    navController: NavController,
+    isAuthenticationViewModelProcessingRequest: MutableState<Boolean>,
+    context: Context,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -228,9 +277,36 @@ private fun SignUpPromptTextWithLink(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = "Don't have an account? ")
-            Text(text = "Sign up", color = Color.Blue, modifier = Modifier.clickable {
-                navController.navigate(Screen.SignUpScreen.withArgs(SignUpDetailsHolder().toJson().toString()))
-            })
+            ClickableSignUpText(isAuthenticationViewModelProcessingRequest, context, navController)
         }
     }
+}
+
+@Composable
+private fun ClickableSignUpText(
+    isAuthenticationViewModelProcessingRequest: MutableState<Boolean>,
+    context: Context,
+    navController: NavController,
+) {
+    Text(text = "Sign up", color = Color.Blue, modifier = Modifier.clickable {
+        if (isAuthenticationViewModelProcessingRequest.value) {
+            showErrorNavigatingToSignUpScreenToast(context)
+        } else {
+            navigateToSignUpScreenWithNoPresetDetails(navController)
+        }
+    })
+}
+
+private fun navigateToSignUpScreenWithNoPresetDetails(navController: NavController) {
+    navController.navigate(
+        Screen.SignUpScreen.withArgs(
+            SignUpDetailsHolder().toJson().toString()
+        )
+    )
+}
+
+private fun showErrorNavigatingToSignUpScreenToast(context: Context) {
+    Toast.makeText(
+        context, "Can't navigate to sign up screen while processing request", Toast.LENGTH_SHORT
+    ).show()
 }

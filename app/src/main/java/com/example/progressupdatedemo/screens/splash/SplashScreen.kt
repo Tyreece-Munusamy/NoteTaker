@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.navigation.NavController
-import com.example.progressupdatedemo.components.ApplicationIcon
+import com.example.progressupdatedemo.components.icons.ApplicationIcon
 import com.example.progressupdatedemo.models.LoginDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
