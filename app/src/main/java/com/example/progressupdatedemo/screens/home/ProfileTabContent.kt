@@ -27,7 +27,7 @@ import com.example.progressupdatedemo.utils.toJson
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun ProfileScreenContent(
+fun ProfileTabContent(
     navController: NavController,
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
     userState: MutableState<User>,

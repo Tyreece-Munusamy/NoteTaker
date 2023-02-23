@@ -5,10 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +27,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.ColumnWithCenteredContent
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
-import com.example.progressupdatedemo.components.textfields.NameInputTextField
+import com.example.progressupdatedemo.components.textfields.OutlinedInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
 import com.example.progressupdatedemo.models.LoginDetailsHolder
 import com.example.progressupdatedemo.models.SignUpDetailsHolder
@@ -161,13 +158,23 @@ private fun EmailInputField(emailState: MutableState<String>) {
 }
 
 @Composable
-private fun LastNameInputField(lastNameState: MutableState<String>) {
-    NameInputTextField(nameState = lastNameState, label = "Last Name")
+private fun FirstNameInputField(firstNameState: MutableState<String>) {
+    NameInputField(firstNameState, "First Name")
 }
 
 @Composable
-private fun FirstNameInputField(firstNameState: MutableState<String>) {
-    NameInputTextField(nameState = firstNameState, label = "First Name")
+private fun LastNameInputField(lastNameState: MutableState<String>) {
+    NameInputField(lastNameState, "Last Name")
+}
+
+@Composable
+private fun NameInputField(nameState: MutableState<String>, label: String) {
+    OutlinedInputTextField(valueState = nameState, labelId = label, icon = {
+        Icon(
+            painter = painterResource(id = R.drawable.account),
+            contentDescription = "Account Icon"
+        )
+    }, isSingleLine = true)
 }
 
 fun createUserAccount(
@@ -184,17 +191,30 @@ fun createUserAccount(
         email.value,
         password.value,
         onFailure = {
-            Toast.makeText(context, "Please enter valid details", Toast.LENGTH_SHORT).show()
             val signUpDetailsHolder =
                 SignUpDetailsHolder(firstName.value, lastName.value, email.value)
-            navigateToSignUpScreenWithPresetDetails(navController, signUpDetailsHolder)
+            if (password.value.length < 6) {
+                showPasswordShowBeSixCharactersOrMoreToast(context)
+                navigateToSignUpScreenWithPresetDetails(navController, signUpDetailsHolder)
+            } else {
+                showInvalidDetailsToast(context)
+                navigateToSignUpScreenWithPresetDetails(navController, signUpDetailsHolder)
+            }
         }) {
-        navigateToHomeScreen(navController)
+        navigateToLoginScreenWithPresetEmail(navController, email.value)
     }
 }
 
-private fun navigateToHomeScreen(navController: NavController) {
-    navController.navigate(Screen.HomeScreen.withArgs("notes"))
+private fun showPasswordShowBeSixCharactersOrMoreToast(context: Context) {
+    Toast.makeText(context, "Password should be 6 characters or more", Toast.LENGTH_SHORT).show()
+}
+
+private fun showInvalidDetailsToast(context: Context) {
+    Toast.makeText(context, "Please enter valid details", Toast.LENGTH_SHORT).show()
+}
+
+private fun navigateToLoginScreenWithPresetEmail(navController: NavController, email: String) {
+    navController.navigate(Screen.LoginScreen.withArgs(LoginDetailsHolder(email).toJson().toString()))
 }
 
 private fun navigateToSignUpScreenWithPresetDetails(

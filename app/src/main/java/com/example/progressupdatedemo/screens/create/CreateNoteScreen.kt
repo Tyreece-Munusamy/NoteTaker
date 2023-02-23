@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -30,8 +32,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.CenterTopAppBar
+import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
+import com.example.progressupdatedemo.components.buttons.NegativePositiveButtonRow
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.navigation.Screen
 import com.google.firebase.Timestamp
@@ -43,8 +46,24 @@ fun CreateNoteScreen(
     createNoteScreenViewModel: CreateNoteScreenViewModel = hiltViewModel(),
 ) {
     val showSaveNoteAlertDialog = remember { mutableStateOf(false) }
-    ShowSaveAlertDialogOnBackPressed(showSaveNoteAlertDialog)
-    CreateNoteScreenScaffold(showSaveNoteAlertDialog, navController, createNoteScreenViewModel)
+    val title = remember {
+        mutableStateOf("")
+    }
+    val message = remember {
+        mutableStateOf("")
+    }
+    val isUserInputValid = remember(title.value, message.value) {
+        createNoteScreenViewModel.validateNoteDetails(title.value, message.value)
+    }
+    OnBackPressedConfiguration(showSaveNoteAlertDialog, message, navController)
+    CreateNoteScreenScaffold(
+        showSaveNoteAlertDialog,
+        navController,
+        createNoteScreenViewModel,
+        title,
+        message,
+        isUserInputValid
+    )
 }
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -53,26 +72,50 @@ private fun CreateNoteScreenScaffold(
     showSaveNoteAlertDialog: MutableState<Boolean>,
     navController: NavController,
     createNoteScreenViewModel: CreateNoteScreenViewModel,
+    title: MutableState<String>,
+    message: MutableState<String>,
+    isUserInputValid: Boolean,
 ) {
     Scaffold(topBar = {
-        CreateNoteScreenTopBar(showSaveNoteAlertDialog)
+        CreateNoteScreenTopBar(showSaveNoteAlertDialog, message, navController)
     }) {
-        CreateNoteScreenContent(navController, createNoteScreenViewModel, showSaveNoteAlertDialog)
+        CreateNoteScreenContent(
+            navController,
+            createNoteScreenViewModel,
+            showSaveNoteAlertDialog,
+            title,
+            message,
+            isUserInputValid
+        )
     }
 }
 
 @Composable
-private fun CreateNoteScreenTopBar(showSaveNoteAlertDialog: MutableState<Boolean>) {
+private fun CreateNoteScreenTopBar(
+    showSaveNoteAlertDialog: MutableState<Boolean>,
+    message: MutableState<String>,
+    navController: NavController,
+) {
     CenterTopAppBar(title = {
         TopBarTitle()
     }, navigationIcon = {
-        BackArrowIconButton(showSaveNoteAlertDialog)
+        BackArrowIconButton(showSaveNoteAlertDialog, message, navController)
     })
 }
 
 @Composable
-private fun BackArrowIconButton(showSaveNoteAlertDialog: MutableState<Boolean>) {
-    IconButton(onClick = { showSaveNoteAlertDialog.value = true }) {
+private fun BackArrowIconButton(
+    showSaveNoteAlertDialog: MutableState<Boolean>,
+    message: MutableState<String>,
+    navController: NavController,
+) {
+    IconButton(onClick = {
+        if (message.value.trim().isNotEmpty()) {
+            showSaveNoteAlertDialog.value = true
+        } else {
+            navigateToHomeScreen(navController)
+        }
+    }) {
         Icon(
             imageVector = Icons.Default.ArrowBack,
             contentDescription = "Back arrow",
@@ -97,38 +140,32 @@ fun CreateNoteScreenContent(
     navController: NavController,
     createNoteScreenViewModel: CreateNoteScreenViewModel,
     showSaveNoteAlertDialog: MutableState<Boolean>,
+    title: MutableState<String>,
+    message: MutableState<String>,
+    isUserInputValid: Boolean,
 ) {
-    val titleState = remember {
-        mutableStateOf("")
-    }
-    val messageState = remember {
-        mutableStateOf("")
-    }
-    val isUserInputValid = remember(titleState.value, messageState.value) {
-        titleState.value.trim().isNotEmpty() && messageState.value.trim().isNotEmpty()
-    }
-    val isLoading = remember {
-        mutableStateOf(false)
-    }
-    val isAlertDialogLoading = remember {
+    val isCreateNoteViewModelProcessingNoteCreation =
+        createNoteScreenViewModel.isProcessingNoteCreation
+    val isAlertDialogPromptingNoteCreateProcess = remember {
         mutableStateOf(false)
     }
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val messageFocusRequester = remember {
+        FocusRequester()
+    }
 
-    if (showSaveNoteAlertDialog.value && isUserInputValid) {
+    if (showSaveNoteAlertDialog.value) {
+        title.value = title.value.ifEmpty { "Untitled" }
         SaveNoteAlertDialog(
             showSaveNoteAlertDialog,
-            isAlertDialogLoading,
+            isAlertDialogPromptingNoteCreateProcess,
             navController,
             createNoteScreenViewModel,
-            titleState,
-            messageState,
+            title,
+            message,
             context
         )
-    } else if (showSaveNoteAlertDialog.value && !isUserInputValid) {
-        navigateToHomeScreen(navController)
-        showSaveNoteAlertDialog.value = false
     }
 
     Column(
@@ -138,49 +175,55 @@ fun CreateNoteScreenContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        TitleTextField(titleState)
+        TitleInputField(title, messageFocusRequester)
 
-        MessageTextField(
-            messageState,
-            keyboardController,
-            isUserInputValid,
-            isLoading,
-            createNoteScreenViewModel,
-            titleState,
-            context,
-            navController
+        MessageInputField(
+            message, keyboardController, messageFocusRequester
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        CreateAndCancelButtonsRow(
-            isLoading,
+        CancelAndCreateButtonRow(
+            isCreateNoteViewModelProcessingNoteCreation,
             isUserInputValid,
             createNoteScreenViewModel,
-            titleState,
-            messageState,
+            title,
+            message,
             context,
             navController
         )
     }
 }
 
+@Composable
+private fun TitleInputField(titleState: MutableState<String>, focusRequester: FocusRequester) {
+    OutlinedTextField(modifier = Modifier.fillMaxWidth(),
+        value = titleState.value,
+        onValueChange = { titleState.value = it },
+        label = {
+            Text(text = "Title")
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions {
+            focusRequester.requestFocus()
+        })
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun MessageTextField(
+private fun MessageInputField(
     messageState: MutableState<String>,
     keyboardController: SoftwareKeyboardController?,
-    isUserInputValid: Boolean,
-    isLoading: MutableState<Boolean>,
-    createNoteScreenViewModel: CreateNoteScreenViewModel,
-    titleState: MutableState<String>,
-    context: Context,
-    navController: NavController,
+    focusRequester: FocusRequester,
 ) {
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
-            .height(325.dp),
+            .height(325.dp)
+            .focusRequester(focusRequester),
         value = messageState.value,
         onValueChange = { messageState.value = it },
         label = {
@@ -192,47 +235,14 @@ private fun MessageTextField(
         ),
         keyboardActions = KeyboardActions {
             keyboardController?.hide()
-            if (isUserInputValid) {
-                isLoading.value = true
-                createNoteScreenViewModel.createNote(Note(
-                    title = titleState.value,
-                    message = messageState.value,
-                    creationDate = Timestamp.now()
-                ), onFailure = {
-                    isLoading.value = false
-                    Toast.makeText(context, "Note creation failed", Toast.LENGTH_LONG).show()
-                }) {
-                    navigateToHomeScreen(navController)
-                    isLoading.value = false
-                }
-            } else {
-                Toast.makeText(context, "Please enter a title and message", Toast.LENGTH_LONG)
-                    .show()
-            }
+            KeyboardActions.Default
         },
         maxLines = 15
     )
 }
 
 @Composable
-private fun TitleTextField(titleState: MutableState<String>) {
-    OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
-        value = titleState.value,
-        onValueChange = { titleState.value = it },
-        label = {
-            Text(text = "Title")
-        },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions.Default
-    )
-}
-
-@Composable
-private fun CreateAndCancelButtonsRow(
+private fun CancelAndCreateButtonRow(
     isLoading: MutableState<Boolean>,
     isUserInputValid: Boolean,
     createNoteScreenViewModel: CreateNoteScreenViewModel,
@@ -241,22 +251,11 @@ private fun CreateAndCancelButtonsRow(
     context: Context,
     navController: NavController,
 ) {
-    Row {
-        AppButton(
-            modifier = Modifier
-                .weight(1f, true)
-                .height(46.dp), text = "Cancel"
-        ) {
-            navController.navigate(Screen.HomeScreen.withArgs("notes"))
-        }
-        Spacer(modifier = Modifier.width(7.dp))
-        AppButton(
-            modifier = Modifier
-                .weight(1f, true)
-                .height(46.dp),
-            text = "Create",
-            isLoading = isLoading.value
-        ) {
+    NegativePositiveButtonRow(
+        negativeButtonLabel = "Cancel",
+        onNegativeButtonClicked = { navController.navigate(Screen.HomeScreen.withArgs("notes")) },
+        positiveButtonLabel = "Create",
+        onPositiveButtonClicked = {
             if (isUserInputValid) {
                 isLoading.value = true
                 createNoteScreenViewModel.createNote(Note(
@@ -274,8 +273,9 @@ private fun CreateAndCancelButtonsRow(
                 Toast.makeText(context, "Please enter a title and message", Toast.LENGTH_LONG)
                     .show()
             }
-        }
-    }
+        },
+        isPositiveButtonLoading = isLoading
+    )
 }
 
 @Composable
@@ -288,8 +288,7 @@ private fun SaveNoteAlertDialog(
     messageState: MutableState<String>,
     context: Context,
 ) {
-    SaveNoteAlertDialog(
-        showAlertDialog = showSaveNoteAlertDialog,
+    CreateNoteScreenAlertDialog(showAlertDialog = showSaveNoteAlertDialog,
         isLoading = isAlertDialogLoading,
         onDiscard = {
             navigateToHomeScreen(navController)
@@ -311,9 +310,17 @@ private fun SaveNoteAlertDialog(
 }
 
 @Composable
-private fun ShowSaveAlertDialogOnBackPressed(showSaveNoteAlertDialog: MutableState<Boolean>) {
+private fun OnBackPressedConfiguration(
+    showSaveNoteAlertDialog: MutableState<Boolean>,
+    message: MutableState<String>,
+    navController: NavController,
+) {
     BackHandler(true) {
-        showSaveNoteAlertDialog.value = true
+        if (message.value.trim().isNotEmpty()) {
+            showSaveNoteAlertDialog.value = true
+        } else {
+            navigateToHomeScreen(navController)
+        }
     }
 }
 
@@ -323,7 +330,7 @@ private fun navigateToHomeScreen(navController: NavController) {
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun SaveNoteAlertDialog(
+fun CreateNoteScreenAlertDialog(
     showAlertDialog: MutableState<Boolean>,
     isLoading: MutableState<Boolean>,
     onDiscard: () -> Unit,
@@ -333,29 +340,45 @@ fun SaveNoteAlertDialog(
         AlertDialog(onDismissRequest = {
             showAlertDialog.value = false
         }, title = {
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.alert),
-                    contentDescription = "Alert icon"
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = " Unsaved changes", fontSize = 16.sp)
-            }
+            SaveNoteAlertDialogTitle()
         }, text = {
             Text(text = "Save note?")
         }, confirmButton = {
-            AppButton(
-                modifier = Modifier.width(95.dp), isLoading = isLoading.value, text = "Save"
-            ) {
-                onSave.invoke()
-            }
+            SaveNoteDialogConfirmButton(isLoading, onSave)
         }, modifier = Modifier.height(170.dp), dismissButton = {
-            AppButton(modifier = Modifier.width(95.dp), text = "Discard") {
-                onDiscard.invoke()
-            }
+            SaveNoteAlertDialogDismissButton(onDiscard)
         })
+    }
+}
+
+@Composable
+private fun SaveNoteDialogConfirmButton(
+    isLoading: MutableState<Boolean>,
+    onSave: () -> Unit,
+) {
+    AppButton(
+        modifier = Modifier.width(95.dp), isLoading = isLoading.value, text = "Save"
+    ) {
+        onSave.invoke()
+    }
+}
+
+@Composable
+private fun SaveNoteAlertDialogDismissButton(onDiscard: () -> Unit) {
+    AppButton(modifier = Modifier.width(95.dp), text = "Discard") {
+        onDiscard.invoke()
+    }
+}
+
+@Composable
+private fun SaveNoteAlertDialogTitle() {
+    Row(
+        horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.alert), contentDescription = "Alert icon"
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = " Unsaved changes", fontSize = 16.sp)
     }
 }

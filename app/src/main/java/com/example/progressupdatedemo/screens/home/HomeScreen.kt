@@ -1,42 +1,31 @@
 package com.example.progressupdatedemo.screens.home
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.CenterTopAppBar
+import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.ColumnWithCenteredContent
-import com.example.progressupdatedemo.components.icons.NoNotesIcon
-import com.example.progressupdatedemo.components.textfields.GeneralOutlinedInputTextField
 import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList
 import com.example.progressupdatedemo.models.User
 import com.example.progressupdatedemo.navigation.Screen
+import com.example.progressupdatedemo.utils.Constants
 import com.example.progressupdatedemo.utils.toJson
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -46,19 +35,15 @@ fun HomeScreen(
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
     tab: String,
 ) {
-    val isLoading = remember(homeScreenViewModel.user.value, homeScreenViewModel.notes.value) {
-        homeScreenViewModel.user.value.loading == true && homeScreenViewModel.notes.value.loading == true
-    }
-    val selectedIcon = remember {
+    val isLoadingNotesAndUserData = homeScreenViewModel.isLoadingNotesAndUserData.value
+    val selectedTab = remember {
         mutableStateOf(tab)
     }
     var notesLabel: @Composable () -> Unit = { Box {} }
     var favouritesLabel: @Composable () -> Unit = { Box {} }
     var profileLabel: @Composable () -> Unit = { Box {} }
-
-    val screenTitle: String
-
-    val showFloatingActionButton = remember {
+    val tabTitle: String
+    val isFloatingActionButtonVisible = remember {
         mutableStateOf(true)
     }
 
@@ -66,187 +51,230 @@ fun HomeScreen(
         mutableStateOf(User("", "", "", ""))
     }
     var topBar: @Composable () -> Unit = { Box { } }
+    val notesState: MutableState<List<Note?>> = remember {
+        mutableStateOf(emptyList())
+    }
 
-    when (selectedIcon.value) {
-        "notes" -> {
-            notesLabel = { Text(text = "Notes", fontSize = 14.sp, color = Color(0xFFd5d4ee)) }
-            showFloatingActionButton.value = true
-            screenTitle = "Notes"
-            topBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = screenTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                }
-            }
+    when (selectedTab.value) {
+        Constants.HOME_SCREEN_NOTES_TAB -> {
+            notesLabel = { BottomBarLabel("Notes") }
+            isFloatingActionButtonVisible.value = true
+            tabTitle = "Notes"
+            topBar = { NotesOrFavouritesTabTopBar(tabTitle) }
         }
-        "favourites" -> {
-            favouritesLabel =
-                { Text(text = "Favourites", fontSize = 14.sp, color = Color(0xFFd5d4ee)) }
-            showFloatingActionButton.value = false
-            screenTitle = "Favourites"
-            topBar = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = screenTitle,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                }
-            }
+
+        Constants.HOME_SCREEN_FAVOURITES_TAB -> {
+            favouritesLabel = { BottomBarLabel("Favourites") }
+            isFloatingActionButtonVisible.value = false
+            tabTitle = "Favourites"
+            topBar = { NotesOrFavouritesTabTopBar(tabTitle) }
         }
-        "profile" -> {
-            profileLabel = { Text(text = "Profile", fontSize = 14.sp, color = Color(0xFFd5d4ee)) }
-            showFloatingActionButton.value = false
-            screenTitle = "Profile"
+
+        Constants.HOME_SCREEN_PROFILE_TAB -> {
+            profileLabel = { BottomBarLabel(text = "Profile") }
+            isFloatingActionButtonVisible.value = false
+            tabTitle = "Profile"
             topBar = {
-                CenterTopAppBar(title = {
-                    Text(
-                        text = screenTitle,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                        fontSize = 18.sp
-                    )
-                }, actions = {
-                    IconButton(onClick = {
-                        navController.navigate(
-                            Screen.UpdateProfileScreen.withArgs(user.value.toJson().toString())
-                        )
-                    }, enabled = !isLoading) {
-                        if (!isLoading) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.account_edit),
-                                contentDescription = "Logout icon",
-                                modifier = Modifier.size(32.dp),
-                                tint = Color.White
-                            )
-                        } else {
-                            Box {}
-                        }
-                    }
-                })
+                ProfileTabTopBar(tabTitle, navController, user, isLoadingNotesAndUserData)
             }
         }
     }
 
     Scaffold(topBar = {
-        TopAppBar(elevation = 2.dp) {
-            topBar.invoke()
-        }
+        HomeScreenTopBarWithElevation(topBar)
     }, floatingActionButton = {
-        if (showFloatingActionButton.value) FloatingActionButton(navController) else Box {}
+        if (isFloatingActionButtonVisible.value) CreateNoteFloatingActionButton(navController)
+        else Box {}
     }, bottomBar = {
-        BottomAppBar(modifier = Modifier.height(58.dp), backgroundColor = Color(0xFF432fbf)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = {
-                    selectedIcon.value = "notes"
-                }) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .padding(7.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.notebook),
-                            contentDescription = "Notebook icon",
-                            tint = Color(0xFFd5d4ee)
-                        )
-                        Spacer(modifier = Modifier.height(1.dp))
-                        notesLabel.invoke()
-                    }
-                }
-                IconButton(onClick = {
-                    selectedIcon.value = "favourites"
-                }) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .padding(7.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.heart),
-                            contentDescription = "Heart icon",
-                            tint = Color(0xFFd5d4ee)
-                        )
-                        Spacer(modifier = Modifier.height(1.dp))
-                        favouritesLabel.invoke()
-                    }
-                }
-                IconButton(onClick = {
-                    selectedIcon.value = "profile"
-                }) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .padding(7.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.account),
-                            contentDescription = "Account icon",
-                            tint = Color(0xFFd5d4ee)
-                        )
-                        Spacer(modifier = Modifier.height(1.dp))
-                        profileLabel.invoke()
-                    }
-                }
-            }
-        }
+        HomeScreenBottomBar(selectedTab, notesLabel, favouritesLabel, profileLabel)
     }) {
-        if (isLoading) {
-            ColumnWithCenteredContent {
-                CircularProgressIndicator()
-            }
+        if (isLoadingNotesAndUserData) {
+            LoadingAnimation()
         } else {
-            val notesState: MutableState<List<Note?>> = remember {
-                mutableStateOf(emptyList())
-            }
-
             val loadedNotes = homeScreenViewModel.notes.value
             user.value = homeScreenViewModel.user.value.data!!
-
-            when (selectedIcon.value) {
-                "notes" -> HomeScreenContent(
-                    navController = navController, notesState, loadedNotes
-                )
-                "favourites" -> {
-                    FavouritesScreenContent(
-                        navController = navController, loadedNotes
-                    )
-                }
-                "profile" -> ProfileScreenContent(navController, homeScreenViewModel, user)
-            }
-
+            TabContent(
+                selectedTab, navController, notesState, loadedNotes, homeScreenViewModel, user
+            )
         }
     }
 }
 
 @Composable
-private fun FloatingActionButton(navController: NavController) {
+private fun TabContent(
+    selectedTab: MutableState<String>,
+    navController: NavController,
+    notesState: MutableState<List<Note?>>,
+    loadedNotes: DataOrException<NoteList, Boolean, Exception>,
+    homeScreenViewModel: HomeScreenViewModel,
+    user: MutableState<User>,
+) {
+    when (selectedTab.value) {
+        Constants.HOME_SCREEN_NOTES_TAB -> NotesTabContent(
+            navController, notesState, loadedNotes
+        )
+        Constants.HOME_SCREEN_FAVOURITES_TAB -> {
+            FavouritesTabContent(
+                navController, loadedNotes
+            )
+        }
+        Constants.HOME_SCREEN_PROFILE_TAB -> ProfileTabContent(
+            navController, homeScreenViewModel, user
+        )
+    }
+}
+
+@Composable
+private fun LoadingAnimation() {
+    ColumnWithCenteredContent {
+        CircularProgressIndicator()
+    }
+}
+
+@Composable
+private fun HomeScreenBottomBar(
+    selectedTab: MutableState<String>,
+    notesLabel: @Composable () -> Unit,
+    favouritesLabel: @Composable () -> Unit,
+    profileLabel: @Composable () -> Unit,
+) {
+    BottomAppBar(modifier = Modifier.height(58.dp), backgroundColor = Color(0xFF432fbf)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BottomBarIconButton(
+                selectedTab = selectedTab,
+                tabOnIconClicked = Constants.HOME_SCREEN_NOTES_TAB,
+                modifier = Modifier.weight(1f),
+                iconId = R.drawable.notebook,
+                notesLabel = notesLabel
+            )
+            BottomBarIconButton(
+                selectedTab = selectedTab,
+                tabOnIconClicked = Constants.HOME_SCREEN_FAVOURITES_TAB,
+                modifier = Modifier.weight(1f),
+                iconId = R.drawable.heart,
+                notesLabel = favouritesLabel
+            )
+            BottomBarIconButton(
+                selectedTab = selectedTab,
+                tabOnIconClicked = Constants.HOME_SCREEN_PROFILE_TAB,
+                modifier = Modifier.weight(1f),
+                iconId = R.drawable.account,
+                notesLabel = profileLabel
+            )
+        }
+    }
+}
+
+@Composable
+fun BottomBarIconButton(
+    selectedTab: MutableState<String>,
+    tabOnIconClicked: String,
+    modifier: Modifier,
+    iconId: Int,
+    notesLabel: @Composable () -> Unit,
+) {
+    IconButton(onClick = {
+        selectedTab.value = tabOnIconClicked
+    }) {
+        Column(
+            modifier = modifier
+                .fillMaxHeight()
+                .padding(7.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            TabIconById(id = iconId)
+            Spacer(modifier = Modifier.height(1.dp))
+            notesLabel.invoke()
+        }
+    }
+}
+
+@Composable
+private fun TabIconById(id: Int, color: Color = Color(0xFFd5d4ee)) {
+    Icon(
+        painter = painterResource(id = id), contentDescription = "Account icon", tint = color
+    )
+}
+
+@Composable
+private fun HomeScreenTopBarWithElevation(topBar: @Composable () -> Unit) {
+    TopAppBar(elevation = 2.dp) {
+        topBar.invoke()
+    }
+}
+
+@Composable
+private fun ProfileTabTopBar(
+    screenTitle: String,
+    navController: NavController,
+    user: MutableState<User>,
+    isLoadingNotesAndUserData: Boolean,
+) {
+    CenterTopAppBar(title = {
+        TopBarTitle(screenTitle)
+    }, actions = {
+        EditProfileIconButton(navController, user, isLoadingNotesAndUserData)
+    })
+}
+
+
+@Composable
+private fun EditProfileIconButton(
+    navController: NavController,
+    user: MutableState<User>,
+    isLoadingNotesAndUserData: Boolean,
+) {
+    IconButton(onClick = {
+        navController.navigate(
+            Screen.UpdateProfileScreen.withArgs(user.value.toJson().toString())
+        )
+    }, enabled = !isLoadingNotesAndUserData) {
+        if (!isLoadingNotesAndUserData) {
+            Icon(
+                painter = painterResource(id = R.drawable.account_edit),
+                contentDescription = "Logout icon",
+                modifier = Modifier.size(32.dp),
+                tint = Color.White
+            )
+        } else {
+            Box {}
+        }
+    }
+}
+
+@Composable
+private fun NotesOrFavouritesTabTopBar(screenTitle: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TopBarTitle(screenTitle)
+    }
+}
+
+@Composable
+private fun TopBarTitle(screenTitle: String) {
+    Text(
+        text = screenTitle,
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Color.White
+    )
+}
+
+@Composable
+private fun BottomBarLabel(text: String) {
+    Text(text = text, fontSize = 14.sp, color = Color(0xFFd5d4ee))
+}
+
+@Composable
+private fun CreateNoteFloatingActionButton(navController: NavController) {
     FloatingActionButton(
         modifier = Modifier.size(65.dp),
         onClick = { navController.navigate(Screen.CreateNoteScreen.route) },
@@ -260,96 +288,3 @@ private fun FloatingActionButton(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun HomeScreenContent(
-    navController: NavController,
-    notesState: MutableState<List<Note?>>,
-    loadedNotes: DataOrException<NoteList, Boolean, Exception>,
-) {
-    val searchState = remember {
-        mutableStateOf("")
-    }
-
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val context = LocalContext.current
-
-    if (loadedNotes.loading == true) {
-        ColumnWithCenteredContent {
-            CircularProgressIndicator()
-        }
-    } else {
-        notesState.value = loadedNotes.data?.notes!!
-        if (notesState.value.isEmpty()) {
-            ColumnWithCenteredContent {
-                NoNotesIcon()
-                Spacer(modifier = Modifier.height(100.dp))
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 38.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                GeneralOutlinedInputTextField(modifier = Modifier.padding(
-                    top = 10.dp, start = 8.dp, end = 9.dp, bottom = 0.dp
-                ), textState = searchState, labelId = "Search", {
-                    Icon(
-                        painter = painterResource(id = R.drawable.magnify),
-                        contentDescription = "Magnifying glass icon"
-                    )
-                }, imeAction = ImeAction.Done, onAction = KeyboardActions {
-                    keyboardController?.hide()
-                    focusManager.clearFocus()
-                })
-                if (searchState.value.isNotEmpty()) {
-                    notesState.value = loadedNotes.data?.notes?.filter { note ->
-                        note.title!!.lowercase().contains(searchState.value.lowercase())
-                    }!!
-                }
-                LazyColumn(
-                    modifier = Modifier.padding(
-                        start = 18.dp, end = 18.dp, bottom = 18.dp
-                    )
-                ) {
-                    items(notesState.value) { note ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(90.dp)
-                                .padding(bottom = 15.dp)
-                                .clickable {
-                                    val jsonNote = note.toJson()!!
-                                    navController.navigate(Screen.NoteDetailsScreen.withArgs(jsonNote, "notes"))
-                                },
-                            border = BorderStroke(1.dp, Color.LightGray.copy(alpha = 0.3f)),
-                            elevation = 4.dp
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(18.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text(text = note?.title.toString())
-                                    Text(
-                                        text = note?.message.toString(),
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = Color.Black.copy(alpha = 0.5f),
-                                        fontSize = 13.sp,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

@@ -182,7 +182,7 @@ private fun signInUser(
             navigateToLoginScreenWithPresetEmail(navController, loginDetailsHolder)
         },
         onSuccess = {
-            navigateToHomeScreen(navController)
+            navigateToLoginScreenWithPresetEmail(navController)
         })
 }
 
@@ -193,7 +193,7 @@ private fun navigateToLoginScreenWithPresetEmail(
     navController.navigate(Screen.LoginScreen.withArgs(loginDetailsHolder.toJson().toString()))
 }
 
-private fun navigateToHomeScreen(navController: NavController) {
+private fun navigateToLoginScreenWithPresetEmail(navController: NavController) {
     navController.navigate(Screen.HomeScreen.withArgs("notes"))
 }
 

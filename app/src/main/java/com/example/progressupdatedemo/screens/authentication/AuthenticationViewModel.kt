@@ -2,12 +2,14 @@ package com.example.progressupdatedemo.screens.authentication
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.example.progressupdatedemo.utils.isValid
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +27,9 @@ class AuthenticationViewModel @Inject constructor(
         onSuccess: () -> Unit,
     ) {
         isProcessingAuthenticationRequest.value = true
-        signInUserWithEmailAndPassword(email, password, onFailure, onSuccess)
+        viewModelScope.launch {
+            signInUserWithEmailAndPassword(email, password, onFailure, onSuccess)
+        }
     }
 
     fun createUser(
@@ -37,7 +41,9 @@ class AuthenticationViewModel @Inject constructor(
         onSuccess: () -> Unit,
     ) {
         isProcessingAuthenticationRequest.value = true
-        createUserWithEmailAndPassword(firstName, lastName, email, password, onFailure, onSuccess)
+        viewModelScope.launch {
+            createUserWithEmailAndPassword(firstName, lastName, email, password, onFailure, onSuccess)
+        }
     }
 
     fun validateLoginDetails(email: String, password: String): Boolean {

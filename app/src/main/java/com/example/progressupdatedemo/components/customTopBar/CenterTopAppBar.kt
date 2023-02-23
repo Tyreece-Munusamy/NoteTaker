@@ -1,4 +1,4 @@
-package com.example.progressupdatedemo.components
+package com.example.progressupdatedemo.components.customTopBar
 
 import android.content.res.Resources
 import android.util.TypedValue

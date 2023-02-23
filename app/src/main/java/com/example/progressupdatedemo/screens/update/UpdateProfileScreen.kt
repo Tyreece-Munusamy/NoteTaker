@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.CenterTopAppBar
+import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.NameInputTextField

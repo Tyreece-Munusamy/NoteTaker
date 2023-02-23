@@ -58,14 +58,19 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
         }
     }
 
+    fun updateNoteIsFavouriteStatus(originalNote: Note, updatedNote: Note) {
+        addNote(updatedNote)
+        deleteNote(originalNote)
+    }
+
     suspend fun getCurrentUser(): DataOrException<User, Boolean, Exception> {
         val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
         val dataOrException = DataOrException<User, Boolean, Exception>()
         try {
             dataOrException.loading = true
             dataOrException.data =
-                firestore.collection("users").whereEqualTo("email", currentUserEmail)
-                    .get().await().toObjects(User::class.java)[0]
+                firestore.collection("users").whereEqualTo("email", currentUserEmail).get().await()
+                    .toObjects(User::class.java)[0]
             if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
         } catch (exception: FirebaseFirestoreException) {
             dataOrException.exception = exception
@@ -74,6 +79,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     }
 
     fun updateUser(updateUser: User): Task<Void> {
-        return firestore.collection("users").document(updateUser.id.toString()).set(updateUser.toMap())
+        return firestore.collection("users").document(updateUser.id.toString())
+            .set(updateUser.toMap())
     }
 }
