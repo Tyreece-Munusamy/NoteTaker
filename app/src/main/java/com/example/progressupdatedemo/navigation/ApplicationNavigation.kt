@@ -18,7 +18,7 @@ import com.example.progressupdatedemo.screens.create.CreateNoteScreen
 import com.example.progressupdatedemo.screens.details.NoteDetailsScreen
 import com.example.progressupdatedemo.screens.home.HomeScreen
 import com.example.progressupdatedemo.screens.splash.SplashScreen
-import com.example.progressupdatedemo.screens.update.EditNoteScreen
+import com.example.progressupdatedemo.screens.update.UpdateNoteScreen
 import com.example.progressupdatedemo.screens.update.UpdateProfileScreen
 import com.example.progressupdatedemo.utils.fromJson
 
@@ -101,7 +101,7 @@ fun ApplicationNavigation() {
             val tab = mapBackStackEntryArgumentToObject(
                 navBackStackEntry, "fromTab", String::class.java
             )
-            EditNoteScreen(navController, note, fromTab = tab)
+            UpdateNoteScreen(navController, note, selectedHomeScreenTab = tab)
         }
 
         composable(

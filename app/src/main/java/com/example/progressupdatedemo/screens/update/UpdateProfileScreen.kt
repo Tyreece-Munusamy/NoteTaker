@@ -1,6 +1,7 @@
 package com.example.progressupdatedemo.screens.update
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
@@ -29,12 +31,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
+import com.example.progressupdatedemo.components.buttons.NegativePositiveButtonRow
+import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
-import com.example.progressupdatedemo.components.textfields.NameInputTextField
 import com.example.progressupdatedemo.models.User
 import com.example.progressupdatedemo.navigation.Screen
+import com.example.progressupdatedemo.utils.Constants
 
 @OptIn(ExperimentalComposeUiApi::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -51,7 +54,6 @@ fun UpdateProfileScreen(
             )
         )
     }
-
     val lastNameState = remember {
         mutableStateOf(user.lastName.toString())
     }
@@ -83,54 +85,56 @@ fun UpdateProfileScreen(
         )
     }
 
+    UpdateProfileScreenScaffold(
+        isUserProfileUpdated,
+        showSaveChangesAlertDialog,
+        navController,
+        isLoading,
+        updateScreenViewModel,
+        user,
+        firstNameTextFieldValue,
+        lastNameState,
+        context,
+        firstNameFocusRequester,
+        keyboardController,
+        emailState
+    )
+}
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun UpdateProfileScreenScaffold(
+    isUserProfileUpdated: Boolean,
+    showSaveChangesAlertDialog: MutableState<Boolean>,
+    navController: NavController,
+    isLoading: MutableState<Boolean>,
+    updateScreenViewModel: UpdateScreenViewModel,
+    user: User,
+    firstNameTextFieldValue: MutableState<TextFieldValue>,
+    lastNameState: MutableState<String>,
+    context: Context,
+    firstNameFocusRequester: FocusRequester,
+    keyboardController: SoftwareKeyboardController?,
+    emailState: MutableState<String>,
+) {
+    val isProcessingUpdateRequest = updateScreenViewModel.isProcessingUpdateRequest
+
     Scaffold(topBar = {
-        CenterTopAppBar(title = {
-            Text(
-                text = "Edit Profile",
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White,
-                fontSize = 18.sp
-            )
-        }, navigationIcon = {
-            IconButton(onClick = {
-                if (isUserProfileUpdated) {
-                    showSaveChangesAlertDialog.value = true
-                } else {
-                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                }
-            }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back arrow",
-                    tint = Color.White
-                )
-            }
-        })
+        UpdateProfileScreenTopBar(isUserProfileUpdated, showSaveChangesAlertDialog, navController)
     }) {
 
         if (showSaveChangesAlertDialog.value && isUserProfileUpdated) {
-            SaveChangedAlertDialog(
-                showAlertDialog = showSaveChangesAlertDialog,
-                isLoading = isLoading,
-                onDiscard = {
-                    showSaveChangesAlertDialog.value = false
-                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
-
-                }) {
-                isLoading.value = true
-                updateScreenViewModel.updateUser(user.id.toString(),
-                    firstNameTextFieldValue.value.text,
-                    lastNameState.value,
-                    user.email.toString(),
-                    onFailure = {
-                        Toast.makeText(context, "Failed to update profile", Toast.LENGTH_LONG)
-                            .show()
-                        navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                    }) {
-                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                    isLoading.value = false
-                }
-            }
+            UnsavedChangesAlertDialog(
+                showSaveChangesAlertDialog,
+                isLoading,
+                navController,
+                updateScreenViewModel,
+                user,
+                firstNameTextFieldValue,
+                lastNameState,
+                context
+            )
         }
 
         Column(
@@ -139,81 +143,227 @@ fun UpdateProfileScreen(
             verticalArrangement = Arrangement.Top
         ) {
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .focusRequester(firstNameFocusRequester)
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-                value = firstNameTextFieldValue.value,
-                onValueChange = {
-                    firstNameTextFieldValue.value = it
-                },
-                textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colors.onBackground),
-                label = {
-                    Text(text = "First Name")
-                },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.account),
-                        contentDescription = "Account icon"
-                    )
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions.Default,
-                maxLines = 1
+            FirstNameInputField(firstNameFocusRequester, firstNameTextFieldValue)
+            LastNameInputField(firstNameFocusRequester, lastNameState, keyboardController)
+            NonFocusableEmailInputField(emailState)
+
+            CancelAndSaveButtonRow(
+                isUserProfileUpdated,
+                updateScreenViewModel,
+                user,
+                firstNameTextFieldValue,
+                lastNameState,
+                context,
+                navController,
+                isProcessingUpdateRequest
             )
-
-            NameInputTextField(nameState = lastNameState,
-                imeAction = ImeAction.Done,
-                onAction = KeyboardActions {
-                    keyboardController?.hide()
-                })
-
-            EmailInputTextField(emailState = emailState, enabled = false, labelId = "")
-            Row(modifier = Modifier.padding(10.dp)) {
-                AppButton(
-                    modifier = Modifier
-                        .weight(1f, true)
-                        .height(46.dp),
-                    text = "Save",
-                ) {
-                    if (isUserProfileUpdated) {
-                        updateScreenViewModel.updateUser(user.id.toString(),
-                            firstNameTextFieldValue.value.text,
-                            lastNameState.value,
-                            user.email.toString(),
-                            onFailure = {
-                                Toast.makeText(
-                                    context, "Failed to update profile", Toast.LENGTH_LONG
-                                ).show()
-                            }) {
-                            navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                        }
-                    } else {
-                        navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                    }
-                }
-                Spacer(modifier = Modifier.width(7.dp))
-                AppButton(
-                    modifier = Modifier
-                        .weight(1f, true)
-                        .height(46.dp), text = "Cancel"
-                ) {
-                    navController.navigate(Screen.HomeScreen.withArgs("profile"))
-                }
-            }
         }
     }
 }
 
+@Composable
+private fun CancelAndSaveButtonRow(
+    isUserProfileUpdated: Boolean,
+    updateScreenViewModel: UpdateScreenViewModel,
+    user: User,
+    firstNameTextFieldValue: MutableState<TextFieldValue>,
+    lastNameState: MutableState<String>,
+    context: Context,
+    navController: NavController,
+    isProcessingUpdateRequest: MutableState<Boolean>,
+) {
+    NegativePositiveButtonRow(
+        negativeButtonLabel = "Cancel",
+        onNegativeButtonClicked = { navigateToHomeScreenWithProfileTabSelected(navController) },
+        positiveButtonLabel = "Save",
+        onPositiveButtonClicked = {
+            if (isUserProfileUpdated) {
+                updateScreenViewModel.updateUser(user.id.toString(),
+                    firstNameTextFieldValue.value.text,
+                    lastNameState.value,
+                    user.email.toString(),
+                    onFailure = {
+                        showFailedToUpdateProfileToast(context)
+                    }) {
+                    navigateToHomeScreenWithProfileTabSelected(navController)
+                }
+            } else {
+                navigateToHomeScreenWithProfileTabSelected(navController)
+            }
+        },
+        isPositiveButtonLoading = isProcessingUpdateRequest
+    )
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+private fun LastNameInputField(
+    firstNameFocusRequester: FocusRequester,
+    lastNameState: MutableState<String>,
+    keyboardController: SoftwareKeyboardController?,
+) {
+    OutlinedTextField(
+        modifier = Modifier
+            .focusRequester(firstNameFocusRequester)
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+        value = lastNameState.value,
+        onValueChange = {
+            lastNameState.value = it
+        },
+        textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colors.onBackground),
+        label = {
+            Text(text = "Last Name")
+        },
+        leadingIcon = {
+            AccountIcon()
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text, imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions {
+            keyboardController?.hide()
+        },
+        maxLines = 1
+    )
+}
+
+@Composable
+private fun NonFocusableEmailInputField(emailState: MutableState<String>) {
+    EmailInputTextField(emailState = emailState, enabled = false, labelId = "")
+}
+
+@Composable
+private fun FirstNameInputField(
+    firstNameFocusRequester: FocusRequester,
+    firstNameTextFieldValue: MutableState<TextFieldValue>,
+) {
+    OutlinedTextField(
+        modifier = Modifier
+            .focusRequester(firstNameFocusRequester)
+            .fillMaxWidth()
+            .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+        value = firstNameTextFieldValue.value,
+        onValueChange = {
+            firstNameTextFieldValue.value = it
+        },
+        textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colors.onBackground),
+        label = {
+            Text(text = "First Name")
+        },
+        leadingIcon = {
+            AccountIcon()
+        },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions.Default,
+        maxLines = 1
+    )
+}
+
+@Composable
+private fun AccountIcon() {
+    Icon(
+        painter = painterResource(id = R.drawable.account), contentDescription = "Account icon"
+    )
+}
+
+@Composable
+private fun UnsavedChangesAlertDialog(
+    showSaveChangesAlertDialog: MutableState<Boolean>,
+    isProcessingUpdateRequest: MutableState<Boolean>,
+    navController: NavController,
+    updateScreenViewModel: UpdateScreenViewModel,
+    user: User,
+    firstNameTextFieldValue: MutableState<TextFieldValue>,
+    lastNameState: MutableState<String>,
+    context: Context,
+) {
+    UpdateProfileScreenSaveChangesAlertDialog(showAlertDialog = showSaveChangesAlertDialog,
+        isProcessingUpdateRequest = isProcessingUpdateRequest,
+        onDiscard = {
+            showSaveChangesAlertDialog.value = false
+            navigateToHomeScreenWithProfileTabSelected(navController)
+
+        }) {
+        updateScreenViewModel.updateUser(user.id.toString(),
+            firstNameTextFieldValue.value.text,
+            lastNameState.value,
+            user.email.toString(),
+            onFailure = {
+                showFailedToUpdateProfileToast(context)
+                navigateToHomeScreenWithProfileTabSelected(navController)
+            }) {
+            navigateToHomeScreenWithProfileTabSelected(navController)
+        }
+    }
+}
+
+private fun showFailedToUpdateProfileToast(context: Context) {
+    Toast.makeText(
+        context, "Failed to update profile", Toast.LENGTH_LONG
+    ).show()
+}
+
+@Composable
+private fun UpdateProfileScreenTopBar(
+    isUserProfileUpdated: Boolean,
+    showSaveChangesAlertDialog: MutableState<Boolean>,
+    navController: NavController,
+) {
+    CenterTopAppBar(title = {
+        TopBarTitle()
+    }, navigationIcon = {
+        BackArrowIconButton(isUserProfileUpdated, showSaveChangesAlertDialog, navController)
+    })
+}
+
+@Composable
+private fun BackArrowIconButton(
+    isUserProfileUpdated: Boolean,
+    showSaveChangesAlertDialog: MutableState<Boolean>,
+    navController: NavController,
+) {
+    IconButton(onClick = {
+        if (isUserProfileUpdated) {
+            showSaveChangesAlertDialog.value = true
+        } else {
+            navigateToHomeScreenWithProfileTabSelected(navController)
+        }
+    }) {
+        BackArrowIcon()
+    }
+}
+
+@Composable
+private fun BackArrowIcon() {
+    Icon(
+        imageVector = Icons.Default.ArrowBack, contentDescription = "Back arrow", tint = Color.White
+    )
+}
+
+private fun navigateToHomeScreenWithProfileTabSelected(navController: NavController) {
+    navController.navigate(Screen.HomeScreen.withArgs(Constants.HOME_SCREEN_PROFILE_TAB))
+}
+
+@Composable
+private fun TopBarTitle() {
+    Text(
+        text = "Edit Profile",
+        fontWeight = FontWeight.SemiBold,
+        color = Color.White,
+        fontSize = 18.sp
+    )
+}
+
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun SaveChangedAlertDialog(
+fun UpdateProfileScreenSaveChangesAlertDialog(
     showAlertDialog: MutableState<Boolean>,
-    isLoading: MutableState<Boolean>,
+    isProcessingUpdateRequest: MutableState<Boolean>,
     onDiscard: () -> Unit,
     onSave: () -> Unit,
 ) {
@@ -221,29 +371,50 @@ fun SaveChangedAlertDialog(
         AlertDialog(onDismissRequest = {
             showAlertDialog.value = false
         }, title = {
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.alert),
-                    contentDescription = "Alert icon"
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(text = " Unsaved changes", fontSize = 16.sp)
-            }
+            SaveProfileAlertDialogTitle()
         }, text = {
-            Text(text = "Save changes made to profile?")
+            SaveProfileChangesMessage()
         }, confirmButton = {
-            AppButton(
-                modifier = Modifier.width(95.dp), isLoading = isLoading.value, text = "Save"
-            ) {
-                onSave.invoke()
-            }
+            SaveProfileChangesConfirmButton(isProcessingUpdateRequest, onSave)
         }, modifier = Modifier.height(170.dp), dismissButton = {
-            AppButton(modifier = Modifier.width(95.dp), text = "Discard") {
-                onDiscard.invoke()
-            }
+            SaveProfileChangesDismissButton(onDiscard)
         })
+    }
+}
+
+@Composable
+private fun SaveProfileChangesDismissButton(onDiscard: () -> Unit) {
+    AppButton(modifier = Modifier.width(95.dp), text = "Discard") {
+        onDiscard.invoke()
+    }
+}
+
+@Composable
+private fun SaveProfileChangesConfirmButton(
+    isProcessingUpdateRequest: MutableState<Boolean>,
+    onSave: () -> Unit,
+) {
+    AppButton(
+        modifier = Modifier.width(95.dp), isLoading = isProcessingUpdateRequest.value, text = "Save"
+    ) {
+        onSave.invoke()
+    }
+}
+
+@Composable
+private fun SaveProfileChangesMessage() {
+    Text(text = "Save changes made to profile?")
+}
+
+@Composable
+private fun SaveProfileAlertDialogTitle() {
+    Row(
+        horizontalArrangement = Arrangement.Start, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.alert), contentDescription = "Alert icon"
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = " Unsaved changes", fontSize = 16.sp)
     }
 }

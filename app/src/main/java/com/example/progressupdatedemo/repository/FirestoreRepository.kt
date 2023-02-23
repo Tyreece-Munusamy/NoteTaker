@@ -22,15 +22,9 @@ class FirestoreRepository @Inject constructor(
     private val userEmail = currentUser?.email
 
     suspend fun getNotesByUserId(userId: String): DataOrException<NoteList, Boolean, Exception> {
-        val dataOrException = DataOrException<NoteList, Boolean, Exception>()
-        try {
-            dataOrException.loading = true
-            dataOrException.data =
-                firestore.collection(Constants.COLLECTION_NAME_NOTES).whereEqualTo("userId", userId)
-                    .get().await().toObjects(NoteList::class.java)[0]
-            if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
-        } catch (exception: FirebaseFirestoreException) {
-            dataOrException.exception = exception
+        val dataOrException = getDataOrExceptionFromApiCall {
+            firestore.collection(Constants.COLLECTION_NAME_NOTES).whereEqualTo("userId", userId)
+                .get().await().toObjects(NoteList::class.java)[0]
         }
         return dataOrException
     }
@@ -67,16 +61,9 @@ class FirestoreRepository @Inject constructor(
     }
 
     suspend fun getCurrentUser(): DataOrException<User, Boolean, Exception> {
-        val currentUserEmail = FirebaseAuth.getInstance().currentUser?.email
-        val dataOrException = DataOrException<User, Boolean, Exception>()
-        try {
-            dataOrException.loading = true
-            dataOrException.data =
-                firestore.collection("users").whereEqualTo("email", currentUserEmail).get().await()
-                    .toObjects(User::class.java)[0]
-            if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
-        } catch (exception: FirebaseFirestoreException) {
-            dataOrException.exception = exception
+        val dataOrException = getDataOrExceptionFromApiCall {
+            firestore.collection(Constants.COLLECTION_NAME_USERS).whereEqualTo("email", userEmail)
+                .get().await().toObjects(User::class.java)[0]
         }
         return dataOrException
     }
@@ -84,5 +71,17 @@ class FirestoreRepository @Inject constructor(
     fun updateUser(updateUser: User): Task<Void> {
         return firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId.toString())
             .set(updateUser.toMap())
+    }
+
+    private suspend fun <T> getDataOrExceptionFromApiCall(apiCall: suspend () -> T): DataOrException<T, Boolean, Exception> {
+        val dataOrException = DataOrException<T, Boolean, Exception>()
+        try {
+            dataOrException.loading = true
+            dataOrException.data = apiCall.invoke()
+            if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
+        } catch (exception: FirebaseFirestoreException) {
+            dataOrException.exception = exception
+        }
+        return dataOrException
     }
 }
