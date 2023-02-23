@@ -71,20 +71,20 @@ fun ApplicationNavigation() {
 
         val detailsScreenBaseRoute = Screen.NoteDetailsScreen.route
         composable(
-            route = "${detailsScreenBaseRoute}/{note}/{fromTab}",
+            route = "${detailsScreenBaseRoute}/{note}/{selectedHomeScreenTab}",
             arguments = listOf(navArgument("note") {
                 type = NavType.StringType
-            }, navArgument("fromTab") {
+            }, navArgument("selectedHomeScreenTab") {
                 type = NavType.StringType
             })
         ) { navBackStackEntry ->
             val note = navBackStackEntry.arguments?.getString("note")?.fromJson(Note::class.java)!!
-            val tab = navBackStackEntry.arguments?.getString("fromTab")
+            val tab = navBackStackEntry.arguments?.getString("selectedHomeScreenTab")!!
 
             BackHandler(true) {
                 navController.navigate("${Screen.HomeScreen.route}/$tab")
             }
-            NoteDetailsScreen(navController = navController, note = note, fromTab = tab)
+            NoteDetailsScreen(navController = navController, note = note, selectedHomeScreenTab = tab)
         }
 
         val updateNoteScreenRoute = Screen.UpdateNoteScreen.withArgs("{note}", "{fromTab}")

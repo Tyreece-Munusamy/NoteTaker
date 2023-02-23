@@ -4,6 +4,7 @@ import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList
 import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.utils.Constants
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -12,15 +13,21 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FirestoreRepository @Inject constructor(private val firestore: FirebaseFirestore) {
+class FirestoreRepository @Inject constructor(
+    private val firestore: FirebaseFirestore,
+    firebaseAuth: FirebaseAuth,
+) {
+    private val currentUser = firebaseAuth.currentUser
+    private val userId = currentUser?.uid
+    private val userEmail = currentUser?.email
 
     suspend fun getNotesByUserId(userId: String): DataOrException<NoteList, Boolean, Exception> {
         val dataOrException = DataOrException<NoteList, Boolean, Exception>()
         try {
             dataOrException.loading = true
             dataOrException.data =
-                firestore.collection("notes").whereEqualTo("userId", userId).get().await()
-                    .toObjects(NoteList::class.java)[0]
+                firestore.collection(Constants.COLLECTION_NAME_NOTES).whereEqualTo("userId", userId)
+                    .get().await().toObjects(NoteList::class.java)[0]
             if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
         } catch (exception: FirebaseFirestoreException) {
             dataOrException.exception = exception
@@ -29,26 +36,22 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     }
 
     fun createUser(firstName: String, lastName: String) {
-        val currentUser = FirebaseAuth.getInstance().currentUser
-        val firestore = FirebaseFirestore.getInstance()
-        val userId = currentUser?.uid
-        val email = currentUser?.email
-        val userDetailsMap = User(userId, firstName, lastName, email).toMap()
+        val userDetailsMap = User(userId, firstName, lastName, userEmail).toMap()
         val noteList = NoteList(userId = userId, notes = emptyList())
 
-        firestore.collection("users").document(userId.toString()).set(userDetailsMap)
-        firestore.collection("notes").document(email.toString()).set(noteList)
+        firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId.toString())
+            .set(userDetailsMap)
+        firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
+            .set(noteList)
     }
 
     fun addNote(note: Note): Task<Void> {
-        return firestore.collection("notes")
-            .document(FirebaseAuth.getInstance().currentUser?.email.toString())
+        return firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
             .update("notes", FieldValue.arrayUnion(note))
     }
 
     fun deleteNote(note: Note): Task<Void> {
-        return firestore.collection("notes")
-            .document(FirebaseAuth.getInstance().currentUser?.email.toString())
+        return firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
             .update("notes", FieldValue.arrayRemove(note))
     }
 
@@ -79,7 +82,7 @@ class FirestoreRepository @Inject constructor(private val firestore: FirebaseFir
     }
 
     fun updateUser(updateUser: User): Task<Void> {
-        return firestore.collection("users").document(updateUser.id.toString())
+        return firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId.toString())
             .set(updateUser.toMap())
     }
 }
