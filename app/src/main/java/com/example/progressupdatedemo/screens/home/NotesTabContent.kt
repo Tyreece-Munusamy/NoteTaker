@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.ColumnWithCenteredContent
+import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
 import com.example.progressupdatedemo.components.icons.NoNotesIcon
 import com.example.progressupdatedemo.components.textfields.OutlinedInputTextField
 import com.example.progressupdatedemo.data.DataOrException

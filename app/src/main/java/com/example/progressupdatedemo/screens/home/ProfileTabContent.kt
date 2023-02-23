@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.progressupdatedemo.components.ColumnWithCenteredContent
+import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.models.LoginDetailsHolder
 import com.example.progressupdatedemo.models.User

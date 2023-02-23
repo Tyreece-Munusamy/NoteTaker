@@ -19,7 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
-import com.example.progressupdatedemo.components.ColumnWithCenteredContent
+import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
 import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList

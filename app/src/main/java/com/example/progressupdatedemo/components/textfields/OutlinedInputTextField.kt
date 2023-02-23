@@ -24,7 +24,7 @@ fun OutlinedInputTextField(
     enabled: Boolean = true,
     isSingleLine: Boolean,
     icon: @Composable () -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Number,
+    keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     onAction: KeyboardActions = KeyboardActions.Default
 ) {
