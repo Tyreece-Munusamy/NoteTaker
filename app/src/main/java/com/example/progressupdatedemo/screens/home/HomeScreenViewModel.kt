@@ -18,9 +18,11 @@ class HomeScreenViewModel @Inject constructor(
     private val repository: FirestoreRepository,
     private val firebaseAuth: FirebaseAuth,
 ) : ViewModel() {
+
     val notes = mutableStateOf(DataOrException(NoteList(), false, Exception("")))
     val user = mutableStateOf(DataOrException(User(), false, Exception("")))
     val isLoadingNotesAndUserData = mutableStateOf(false)
+    val isLoggingOut = mutableStateOf(false)
 
     init {
         viewModelScope.launch {
@@ -33,24 +35,27 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     private suspend fun getAllNotesByUserId() {
-//        notes.value.loading = true
         notes.value = repository.getNotesByUserId(firebaseAuth.currentUser?.uid!!)
         if (notes.value.data.toString().isNotEmpty()) {
-            val notesOrderedByTimestamp = orderListNotesByCreationDate(notes.value.data?.notes!!)
-            notes.value.data?.notes = notesOrderedByTimestamp
-//            notes.value.loading = false
+            val sortedByTimestamp = sortNotesByCreationDate(notes.value.data?.notes!!)
+            notes.value.data?.notes = sortedByTimestamp
         }
     }
 
-    fun signOut() = viewModelScope.launch { firebaseAuth.signOut() }
-
-    private suspend fun getCurrentUser() {
-//        user.value.loading = true
-        user.value = repository.getCurrentUser()
-//        if (user.value.data.toString().isNotEmpty()) user.value.loading = false
+    fun signOut() {
+        viewModelScope.launch {
+            isLoggingOut.value = true
+            firebaseAuth.signOut()
+        }.invokeOnCompletion {
+            isLoggingOut.value = false
+        }
     }
 
-    private fun orderListNotesByCreationDate(notes: List<Note>): List<Note> {
+    private suspend fun getCurrentUser() {
+        user.value = repository.getCurrentUser()
+    }
+
+    private fun sortNotesByCreationDate(notes: List<Note>): List<Note> {
         return notes.toMutableList().sortedWith(compareBy { it.creationDate }).asReversed()
     }
 }

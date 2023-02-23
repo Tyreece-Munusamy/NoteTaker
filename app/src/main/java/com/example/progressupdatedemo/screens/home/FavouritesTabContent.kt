@@ -59,7 +59,7 @@ fun FavouritesTabContent(
                 if (searchText.value.isNotEmpty()) {
                     filterFavouritesBySearchTextValue(favouriteNotes, searchText)
                 }
-                LazyColumnOfNoteCards(favouriteNotes, onNoteCardClicked = { note ->
+                LazyColumnOfNoteCards(notes = favouriteNotes, onNoteCardClicked = { note ->
                     val noteInJsonFormat = note.toJson()!!
                     navigateToHomeScreenWithFavouritesTabSelected(navController, noteInJsonFormat)
                 })

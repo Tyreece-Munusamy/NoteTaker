@@ -18,17 +18,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.R
-import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
+import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.Note
 import com.example.progressupdatedemo.models.NoteList
 import com.example.progressupdatedemo.models.User
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.Constants
 import com.example.progressupdatedemo.utils.toJson
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
     navController: NavController = NavController(LocalContext.current),
@@ -46,14 +44,10 @@ fun HomeScreen(
     val isFloatingActionButtonVisible = remember {
         mutableStateOf(true)
     }
-
     val user = remember {
         mutableStateOf(User("", "", "", ""))
     }
     var topBar: @Composable () -> Unit = { Box { } }
-    val notesState: MutableState<List<Note?>> = remember {
-        mutableStateOf(emptyList())
-    }
 
     when (selectedTab.value) {
         Constants.HOME_SCREEN_NOTES_TAB -> {
@@ -80,6 +74,34 @@ fun HomeScreen(
         }
     }
 
+    HomeScreenScaffold(
+        topBar,
+        isFloatingActionButtonVisible,
+        navController,
+        selectedTab,
+        notesLabel,
+        favouritesLabel,
+        profileLabel,
+        isLoadingNotesAndUserData,
+        homeScreenViewModel,
+        user,
+    )
+}
+
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+private fun HomeScreenScaffold(
+    topBar: @Composable () -> Unit,
+    isFloatingActionButtonVisible: MutableState<Boolean>,
+    navController: NavController,
+    selectedTab: MutableState<String>,
+    notesLabel: @Composable () -> Unit,
+    favouritesLabel: @Composable () -> Unit,
+    profileLabel: @Composable () -> Unit,
+    isLoadingNotesAndUserData: Boolean,
+    homeScreenViewModel: HomeScreenViewModel,
+    user: MutableState<User>,
+) {
     Scaffold(topBar = {
         HomeScreenTopBarWithElevation(topBar)
     }, floatingActionButton = {
@@ -91,10 +113,12 @@ fun HomeScreen(
         if (isLoadingNotesAndUserData) {
             LoadingAnimation()
         } else {
-            val loadedNotes = homeScreenViewModel.notes.value
+            val noteListOrException = homeScreenViewModel.notes.value
+            val userOrException = homeScreenViewModel.user.value
             user.value = homeScreenViewModel.user.value.data!!
+
             TabContent(
-                selectedTab, navController, notesState, loadedNotes, homeScreenViewModel, user
+                selectedTab, navController, noteListOrException, homeScreenViewModel, userOrException
             )
         }
     }
@@ -104,14 +128,13 @@ fun HomeScreen(
 private fun TabContent(
     selectedTab: MutableState<String>,
     navController: NavController,
-    notesState: MutableState<List<Note?>>,
     loadedNotes: DataOrException<NoteList, Boolean, Exception>,
     homeScreenViewModel: HomeScreenViewModel,
-    user: MutableState<User>,
+    userOrException: DataOrException<User, Boolean, Exception>,
 ) {
     when (selectedTab.value) {
         Constants.HOME_SCREEN_NOTES_TAB -> NotesTabContent(
-            navController, notesState, loadedNotes
+            navController, loadedNotes
         )
         Constants.HOME_SCREEN_FAVOURITES_TAB -> {
             FavouritesTabContent(
@@ -119,7 +142,7 @@ private fun TabContent(
             )
         }
         Constants.HOME_SCREEN_PROFILE_TAB -> ProfileTabContent(
-            navController, homeScreenViewModel, user
+            navController, homeScreenViewModel, userOrException
         )
     }
 }
@@ -261,10 +284,7 @@ private fun NotesOrFavouritesTabTopBar(screenTitle: String) {
 @Composable
 private fun TopBarTitle(screenTitle: String) {
     Text(
-        text = screenTitle,
-        fontSize = 18.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = Color.White
+        text = screenTitle, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color.White
     )
 }
 
@@ -280,11 +300,16 @@ private fun CreateNoteFloatingActionButton(navController: NavController) {
         onClick = { navController.navigate(Screen.CreateNoteScreen.route) },
         backgroundColor = MaterialTheme.colors.primary
     ) {
-        Icon(
-            painter = painterResource(id = R.drawable.plus),
-            contentDescription = "Add icon",
-            tint = Color.White
-        )
+        PlusIcon()
     }
+}
+
+@Composable
+private fun PlusIcon() {
+    Icon(
+        painter = painterResource(id = R.drawable.plus),
+        contentDescription = "Add icon",
+        tint = Color.White
+    )
 }
 

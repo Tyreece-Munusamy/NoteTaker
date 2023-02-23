@@ -12,14 +12,8 @@ fun timestampToFormattedDate(timestamp: Timestamp): String {
     return simpleDateFormat.format(date).toString()
 }
 
-fun <A> String.fromJson(type: Class<A>): A {
-    return Gson().fromJson(this, type)
-}
+fun <A> String.fromJson(type: Class<A>): A = Gson().fromJson(this, type)
 
-fun <A> A.toJson(): String? {
-    return Gson().toJson(this)
-}
+fun <A> A.toJson(): String? = Gson().toJson(this)
 
-fun String.isValid(): Boolean {
-    return this.trim().isNotEmpty()
-}
+fun String.isValid(): Boolean = this.trim().isNotEmpty()

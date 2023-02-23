@@ -12,7 +12,7 @@ import com.example.progressupdatedemo.models.Note
 
 @Composable
 fun LazyColumnOfNoteCards(
-    favouriteNotes: MutableState<List<Note>>,
+    notes: MutableState<List<Note>>,
     onNoteCardClicked: (Note) -> Unit
 ) {
     LazyColumn(
@@ -20,7 +20,7 @@ fun LazyColumnOfNoteCards(
             start = 18.dp, end = 18.dp, bottom = 18.dp
         )
     ) {
-        items(favouriteNotes.value) { note ->
+        items(notes.value) { note ->
             NoteCard(note, onNoteCardClicked)
         }
     }

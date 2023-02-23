@@ -18,149 +18,175 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
+import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.buttons.AppButton
+import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
+import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.models.LoginDetailsHolder
 import com.example.progressupdatedemo.models.User
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ProfileTabContent(
     navController: NavController,
     homeScreenViewModel: HomeScreenViewModel = hiltViewModel(),
-    userState: MutableState<User>,
+    userOrException: DataOrException<User, Boolean, Exception>,
 ) {
-    val loadedUser = homeScreenViewModel.user.value
-    val isLoading = remember {
-        mutableStateOf(false)
+    val user = remember {
+        mutableStateOf(User())
     }
-    if (loadedUser.loading == true || userState.value.firstName == null) {
+    val isLoggingOut = homeScreenViewModel.isLoggingOut
+
+    if (userOrException.exception != null) {
         ColumnWithCenteredContent {
-            CircularProgressIndicator()
+            Text(text = "Error loading user details")
         }
     } else {
-        Scaffold(bottomBar = { BottomAppBar {} }) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-                Divider(color = Color.White, thickness = 1.dp)
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(250.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colors.primary,
-                                    MaterialTheme.colors.primaryVariant
-                                )
-                            )
-                        )
-                        .padding(30.dp), horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        painter = painterResource(id = com.example.progressupdatedemo.R.drawable.account_circle),
-                        contentDescription = "Account circle icon",
-                        modifier = Modifier.size(125.dp),
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = "${userState.value.firstName} ${userState.value.lastName}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                }
+        user.value = userOrException.data!!
+        ProfileTabScaffold(user, isLoggingOut, homeScreenViewModel, navController)
+    }
+}
 
-                Spacer(modifier = Modifier.height(15.dp))
-
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "First Name",
-                        fontSize = 11.sp,
-                        style = MaterialTheme.typography.caption
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 10.dp),
-                        text = userState.value.firstName.toString(),
-                        style = MaterialTheme.typography.caption,
-                        fontWeight = FontWeight(550),
-                        fontSize = 18.sp
-                    )
-                    Divider(color = Color.Black.copy(0.2f))
-                }
-
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(
-                        text = "Last Name",
-                        fontSize = 11.sp,
-                        style = MaterialTheme.typography.caption
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 10.dp),
-                        text = userState.value.lastName.toString(),
-                        style = MaterialTheme.typography.caption,
-                        fontWeight = FontWeight(550),
-                        fontSize = 18.sp
-                    )
-                    Divider(color = Color.Black.copy(0.2f))
-                }
-
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text(text = "Email", fontSize = 11.sp, style = MaterialTheme.typography.caption)
-                    Text(
-                        modifier = Modifier.padding(start = 10.dp),
-                        text = userState.value.email.toString(),
-                        style = MaterialTheme.typography.caption,
-                        fontWeight = FontWeight(525),
-                        fontSize = 18.sp
-                    )
-                    Divider(color = Color.Black.copy(0.2f))
-                }
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 18.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    AppButton(
-                        text = "Log out",
-                        modifier = Modifier.weight(1f),
-                        backgroundColor = Color(0xFFDe1313),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        isLoading = isLoading.value
-                    ) {
-                        isLoading.value = true
-                        homeScreenViewModel.signOut()
-                        navController.navigate(
-                            Screen.LoginScreen.withArgs(LoginDetailsHolder().toJson().toString())
-                        )
-                        isLoading.value = false
-                    }
-                }
-
-            }
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@Composable
+private fun ProfileTabScaffold(
+    user: MutableState<User>,
+    isLoggingOut: MutableState<Boolean>,
+    homeScreenViewModel: HomeScreenViewModel,
+    navController: NavController,
+) {
+    Scaffold {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Divider(color = Color.White, thickness = 1.dp)
+            ProfileSummary(user)
+            Spacer(modifier = Modifier.height(15.dp))
+            FirstNameField(user)
+            LastNameField(user)
+            EmailField(user)
+            Spacer(modifier = Modifier.height(5.dp))
+            LogOutButton(isLoggingOut, homeScreenViewModel, navController)
         }
     }
+}
+
+@Composable
+private fun LogOutButton(
+    isLoggingOut: MutableState<Boolean>,
+    homeScreenViewModel: HomeScreenViewModel,
+    navController: NavController,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AppButton(
+            text = "Log out",
+            modifier = Modifier.weight(1f),
+            backgroundColor = Color(0xFFDe1313),
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            isLoading = isLoggingOut.value
+        ) {
+            homeScreenViewModel.signOut()
+            navigateToLoginScreenWithNoPresetValues(navController)
+        }
+    }
+}
+
+private fun navigateToLoginScreenWithNoPresetValues(navController: NavController) {
+    navController.navigate(
+        Screen.LoginScreen.withArgs(LoginDetailsHolder().toJson().toString())
+    )
+}
+
+@Composable
+private fun FirstNameField(user: MutableState<User>) {
+    ProfileDetailsField(label = "First Name", profileDetails = user.value.firstName.toString())
+}
+
+@Composable
+private fun LastNameField(user: MutableState<User>) {
+    ProfileDetailsField(label = "Last Name", profileDetails = user.value.lastName.toString())
+}
+
+@Composable
+private fun EmailField(user: MutableState<User>) {
+    ProfileDetailsField(label = "Email", profileDetails = user.value.email.toString())
+}
+
+@Composable
+private fun ProfileDetailsField(label: String, profileDetails: String) {
+    Column(
+        modifier = Modifier.padding(18.dp),
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.Start
+    ) {
+        ProfileDetailsFieldLabel(label)
+        ProfilesDetailsFieldText(profileDetails)
+        Divider(color = Color.Black.copy(0.2f))
+    }
+}
+
+@Composable
+private fun ProfilesDetailsFieldText(profileDetails: String) {
+    Text(
+        modifier = Modifier.padding(start = 10.dp),
+        text = profileDetails,
+        style = MaterialTheme.typography.caption,
+        fontWeight = FontWeight(525),
+        fontSize = 18.sp
+    )
+}
+
+@Composable
+private fun ProfileDetailsFieldLabel(label: String) {
+    Text(text = label, fontSize = 11.sp, style = MaterialTheme.typography.caption)
+}
+
+@Composable
+private fun ProfileSummary(user: MutableState<User>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colors.primary, MaterialTheme.colors.primaryVariant
+                    )
+                )
+            )
+            .padding(30.dp), horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AccountIcon()
+        Spacer(modifier = Modifier.height(20.dp))
+        UserFullNameText(user)
+    }
+}
+
+@Composable
+private fun UserFullNameText(user: MutableState<User>) {
+    Text(
+        text = "${user.value.firstName} ${user.value.lastName}",
+        fontSize = 18.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = Color.White
+    )
+}
+
+@Composable
+private fun AccountIcon() {
+    Icon(
+        painter = painterResource(id = R.drawable.account_circle),
+        contentDescription = "Account circle icon",
+        modifier = Modifier.size(125.dp),
+        tint = Color.White
+    )
 }
