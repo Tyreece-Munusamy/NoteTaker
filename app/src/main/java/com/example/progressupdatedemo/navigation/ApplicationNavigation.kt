@@ -56,11 +56,12 @@ fun ApplicationNavigation() {
         }
 
         composable(
-            route = "${Screen.HomeScreen.route}/{tab}", arguments = listOf(navArgument("tab") {
+            route = "${Screen.HomeScreen.route}/{selectedHomeScreenTab}",
+            arguments = listOf(navArgument("selectedHomeScreenTab") {
                 type = NavType.StringType
             })
         ) { backStackEntry ->
-            val tab = backStackEntry.arguments?.getString("tab").toString()
+            val tab = backStackEntry.arguments?.getString("selectedHomeScreenTab").toString()
             HomeScreen(navController = navController, tab = tab)
             BackHandler(true) { }
         }
@@ -84,22 +85,26 @@ fun ApplicationNavigation() {
             BackHandler(true) {
                 navController.navigate("${Screen.HomeScreen.route}/$tab")
             }
-            NoteDetailsScreen(navController = navController, note = note, selectedHomeScreenTab = tab)
+            NoteDetailsScreen(
+                navController = navController, note = note, selectedHomeScreenTab = tab
+            )
         }
 
-        val updateNoteScreenRoute = Screen.UpdateNoteScreen.withArgs("{note}", "{fromTab}")
+        val updateNoteScreenRoute =
+            Screen.UpdateNoteScreen.withArgs("{note}", "{selectedHomeScreenTab}")
         val updateNoteScreenArguments = listOf(navArgument("note") {
             type = NavType.StringType
-        }, navArgument("fromTab") {
+        }, navArgument("selectedHomeScreenTab") {
             type = NavType.StringType
         })
-        composable(route = updateNoteScreenRoute, arguments = updateNoteScreenArguments) {
-                navBackStackEntry ->
+        composable(
+            route = updateNoteScreenRoute, arguments = updateNoteScreenArguments
+        ) { navBackStackEntry ->
             val note = mapBackStackEntryArgumentToObject(
                 navBackStackEntry, "note", Note::class.java
             )
             val tab = mapBackStackEntryArgumentToObject(
-                navBackStackEntry, "fromTab", String::class.java
+                navBackStackEntry, "selectedHomeScreenTab", String::class.java
             )
             UpdateNoteScreen(navController, note, selectedHomeScreenTab = tab)
         }

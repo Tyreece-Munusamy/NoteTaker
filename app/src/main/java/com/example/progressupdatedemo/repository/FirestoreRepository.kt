@@ -15,12 +15,8 @@ import javax.inject.Inject
 
 class FirestoreRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
-    firebaseAuth: FirebaseAuth,
+    private val firebaseAuth: FirebaseAuth,
 ) {
-    private val currentUser = firebaseAuth.currentUser
-    private val userId = currentUser?.uid
-    private val userEmail = currentUser?.email
-
     suspend fun getNotesByUserId(userId: String): DataOrException<NoteList, Boolean, Exception> {
         val dataOrException = getDataOrExceptionFromApiCall {
             firestore.collection(Constants.COLLECTION_NAME_NOTES).whereEqualTo("userId", userId)
@@ -29,22 +25,26 @@ class FirestoreRepository @Inject constructor(
         return dataOrException
     }
 
-    fun createUser(firstName: String, lastName: String) {
+    suspend fun createUser(firstName: String, lastName: String) {
+        val userId = firebaseAuth.currentUser?.uid
+        val userEmail = firebaseAuth.currentUser?.email
         val userDetailsMap = User(userId, firstName, lastName, userEmail).toMap()
         val noteList = NoteList(userId = userId, notes = emptyList())
 
         firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId.toString())
-            .set(userDetailsMap)
+            .set(userDetailsMap).await()
         firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
-            .set(noteList)
+            .set(noteList).await()
     }
 
     fun addNote(note: Note): Task<Void> {
+        val userEmail = firebaseAuth.currentUser?.email
         return firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
             .update("notes", FieldValue.arrayUnion(note))
     }
 
     fun deleteNote(note: Note): Task<Void> {
+        val userEmail = firebaseAuth.currentUser?.email
         return firestore.collection(Constants.COLLECTION_NAME_NOTES).document(userEmail.toString())
             .update("notes", FieldValue.arrayRemove(note))
     }
@@ -61,6 +61,7 @@ class FirestoreRepository @Inject constructor(
     }
 
     suspend fun getCurrentUser(): DataOrException<User, Boolean, Exception> {
+        val userEmail = firebaseAuth.currentUser?.email
         val dataOrException = getDataOrExceptionFromApiCall {
             firestore.collection(Constants.COLLECTION_NAME_USERS).whereEqualTo("email", userEmail)
                 .get().await().toObjects(User::class.java)[0]
@@ -69,6 +70,7 @@ class FirestoreRepository @Inject constructor(
     }
 
     fun updateUser(updateUser: User): Task<Void> {
+        val userId = firebaseAuth.currentUser?.uid
         return firestore.collection(Constants.COLLECTION_NAME_USERS).document(userId.toString())
             .set(updateUser.toMap())
     }
@@ -78,7 +80,7 @@ class FirestoreRepository @Inject constructor(
         try {
             dataOrException.loading = true
             dataOrException.data = apiCall.invoke()
-            if (dataOrException.data.toString().isNotEmpty()) dataOrException.loading = false
+            if (dataOrException.data != null) dataOrException.loading = false
         } catch (exception: FirebaseFirestoreException) {
             dataOrException.exception = exception
         }

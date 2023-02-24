@@ -41,16 +41,21 @@ class AuthenticationViewModel @Inject constructor(
         onSuccess: () -> Unit,
     ) {
         isProcessingAuthenticationRequest.value = true
-        viewModelScope.launch {
-            createUserWithEmailAndPassword(firstName, lastName, email, password, onFailure, onSuccess)
-        }
+        createUserWithEmailAndPassword(
+            firstName, lastName, email, password, onFailure, onSuccess
+        )
     }
 
     fun validateLoginDetails(email: String, password: String): Boolean {
         return email.isValid() && password.isValid()
     }
 
-    fun validateSignUpDetails(firstName: String, lastName: String, email: String, password: String): Boolean {
+    fun validateSignUpDetails(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String,
+    ): Boolean {
         return firstName.isValid() && lastName.isValid() && email.isValid() && password.isValid()
     }
 
@@ -72,14 +77,18 @@ class AuthenticationViewModel @Inject constructor(
         onFailure: () -> Unit,
         onSuccess: () -> Unit,
     ) {
-        val taskWithAuthResult = firebaseAuth.createUserWithEmailAndPassword(email, password)
-        val persistCreatedUserToFirestoreOnSuccess = {
-            onSuccess.invoke()
-            repository.createUser(firstName, lastName)
+        firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener {
+            task ->
+            if (task.isSuccessful) {
+                viewModelScope.launch { repository.createUser(firstName, lastName) }
+                    .invokeOnCompletion {
+                        onSuccess.invoke()
+                        isProcessingAuthenticationRequest.value = false
+                    }
+            } else {
+                onFailure.invoke()
+            }
         }
-        invokeOnSuccessOrOnFailureOnTaskCompletion(
-            taskWithAuthResult, persistCreatedUserToFirestoreOnSuccess, onFailure
-        )
     }
 
     private fun invokeOnSuccessOrOnFailureOnTaskCompletion(
