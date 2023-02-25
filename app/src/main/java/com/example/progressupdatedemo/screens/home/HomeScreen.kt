@@ -21,8 +21,8 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
 import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.NoteList
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.NoteList
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.Constants
 import com.example.progressupdatedemo.utils.toJson

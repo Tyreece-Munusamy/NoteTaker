@@ -8,7 +8,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.progressupdatedemo.components.cards.NoteCard
-import com.example.progressupdatedemo.models.Note
+import com.example.progressupdatedemo.domain.models.Note
 
 @Composable
 fun LazyColumnOfNoteCards(

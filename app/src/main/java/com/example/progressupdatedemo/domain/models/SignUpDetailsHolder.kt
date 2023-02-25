@@ -1,4 +1,4 @@
-package com.example.progressupdatedemo.models
+package com.example.progressupdatedemo.domain.models
 
 data class SignUpDetailsHolder(
     val firstName: String = "",

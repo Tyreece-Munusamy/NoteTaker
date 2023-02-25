@@ -29,8 +29,8 @@ import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.OutlinedInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
-import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.models.SignUpDetailsHolder
+import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
+import com.example.progressupdatedemo.domain.models.SignUpDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
@@ -186,7 +186,7 @@ fun createUserAccount(
     navController: NavController,
     context: Context,
 ) {
-    authenticationViewModel.createUser(firstName.value,
+    authenticationViewModel.signUp(firstName.value,
         lastName.value,
         email.value,
         password.value,

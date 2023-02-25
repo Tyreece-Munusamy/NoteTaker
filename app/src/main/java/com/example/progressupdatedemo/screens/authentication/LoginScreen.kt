@@ -28,8 +28,8 @@ import com.example.progressupdatedemo.components.columns.ColumnWithCenteredConte
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
-import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.models.SignUpDetailsHolder
+import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
+import com.example.progressupdatedemo.domain.models.SignUpDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 
@@ -114,7 +114,7 @@ private fun LoginButton(
     navController: NavController,
 ) {
     LoginScreenButton(isAuthenticationViewModelProcessingRequest, isEmailAndPasswordValid) {
-        signInUser(
+        signIn(
             emailState = email,
             passwordState = password,
             authenticationViewModel = authenticationViewModel,
@@ -167,14 +167,14 @@ private fun AccountIcon() {
     )
 }
 
-private fun signInUser(
+private fun signIn(
     emailState: MutableState<String>,
     passwordState: MutableState<String>,
     authenticationViewModel: AuthenticationViewModel,
     context: Context,
     navController: NavController,
 ) {
-    authenticationViewModel.signInUser(email = emailState.value,
+    authenticationViewModel.signIn(email = emailState.value,
         password = passwordState.value,
         onFailure = {
             showInvalidEmailOrPasswordToast(context)

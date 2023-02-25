@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.progressupdatedemo.models.Note
+import com.example.progressupdatedemo.domain.models.Note
 
 @Composable
 fun NoteCard(

@@ -35,7 +35,7 @@ import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.buttons.NegativePositiveButtonRow
 import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.Constants
 

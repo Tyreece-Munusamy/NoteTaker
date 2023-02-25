@@ -8,10 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.models.SignUpDetailsHolder
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
+import com.example.progressupdatedemo.domain.models.Note
+import com.example.progressupdatedemo.domain.models.SignUpDetailsHolder
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.screens.authentication.LoginScreen
 import com.example.progressupdatedemo.screens.authentication.SignUpScreen
 import com.example.progressupdatedemo.screens.create.CreateNoteScreen

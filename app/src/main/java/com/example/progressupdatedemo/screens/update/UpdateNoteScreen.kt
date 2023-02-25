@@ -33,7 +33,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.buttons.NegativePositiveButtonRow
 import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
-import com.example.progressupdatedemo.models.Note
+import com.example.progressupdatedemo.domain.models.Note
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 

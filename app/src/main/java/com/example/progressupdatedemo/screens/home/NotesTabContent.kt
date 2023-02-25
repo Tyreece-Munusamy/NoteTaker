@@ -18,8 +18,8 @@ import com.example.progressupdatedemo.components.columns.LazyColumnOfNoteCards
 import com.example.progressupdatedemo.components.icons.NoNotesIcon
 import com.example.progressupdatedemo.components.textfields.SearchBar
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.models.NoteList
+import com.example.progressupdatedemo.domain.models.Note
+import com.example.progressupdatedemo.domain.models.NoteList
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.Constants
 import com.example.progressupdatedemo.utils.toJson

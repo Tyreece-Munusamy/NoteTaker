@@ -4,9 +4,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.models.NoteList
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.Note
+import com.example.progressupdatedemo.domain.models.NoteList
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -3,8 +3,8 @@ package com.example.progressupdatedemo.screens.update
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.Note
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.lifecycle.HiltViewModel

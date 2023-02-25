@@ -22,8 +22,8 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.LoginDetailsHolder
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.utils.toJson
 

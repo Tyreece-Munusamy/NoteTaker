@@ -3,7 +3,7 @@ package com.example.progressupdatedemo.screens.create
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.progressupdatedemo.models.Note
+import com.example.progressupdatedemo.domain.models.Note
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.AuthResult

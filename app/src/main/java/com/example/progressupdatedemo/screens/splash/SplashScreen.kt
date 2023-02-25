@@ -11,10 +11,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.progressupdatedemo.components.icons.ApplicationIcon
-import com.example.progressupdatedemo.models.LoginDetailsHolder
+import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
+import com.example.progressupdatedemo.screens.authentication.AuthenticationViewModel
 import com.example.progressupdatedemo.utils.toJson
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -27,19 +29,19 @@ fun SplashScreen(navController: NavController) {
 }
 
 @Composable
-private fun SplashScreenContent(navController: NavController) {
+private fun SplashScreenContent(navController: NavController, authenticationViewModel: AuthenticationViewModel = hiltViewModel()) {
     val scale = remember { Animatable(0f) }
-    val userEmail = FirebaseAuth.getInstance().currentUser?.email
+    val isUserAuthenticated = authenticationViewModel.isUserAuthenticated
 
     LaunchedEffect(key1 = true) {
         animateScaleIncrease(scale)
 
         delay(500L)
 
-        if (userEmail.isNullOrEmpty()) {
-            navigateToLoginScreenWithNoPresetDetails(navController)
-        } else {
+        if (isUserAuthenticated) {
             navigateToHomeScreen(navController)
+        } else {
+            navigateToLoginScreenWithNoPresetDetails(navController)
         }
     }
 

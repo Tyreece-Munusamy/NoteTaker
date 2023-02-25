@@ -35,7 +35,7 @@ import com.example.progressupdatedemo.R
 import com.example.progressupdatedemo.components.customTopBar.CenterTopAppBar
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.buttons.NegativePositiveButtonRow
-import com.example.progressupdatedemo.models.Note
+import com.example.progressupdatedemo.domain.models.Note
 import com.example.progressupdatedemo.navigation.Screen
 import com.google.firebase.Timestamp
 
@@ -258,7 +258,8 @@ private fun CancelAndCreateButtonRow(
         onPositiveButtonClicked = {
             if (isUserInputValid) {
                 isLoading.value = true
-                createNoteScreenViewModel.createNote(Note(
+                createNoteScreenViewModel.createNote(
+                    Note(
                     title = titleState.value,
                     message = messageState.value,
                     creationDate = Timestamp.now()
@@ -295,7 +296,8 @@ private fun SaveNoteAlertDialog(
 
         }) {
         isAlertDialogLoading.value = true
-        createNoteScreenViewModel.createNote(Note(
+        createNoteScreenViewModel.createNote(
+            Note(
             title = titleState.value,
             message = messageState.value,
             creationDate = Timestamp.now()

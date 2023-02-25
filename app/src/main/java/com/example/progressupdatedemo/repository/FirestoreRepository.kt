@@ -1,9 +1,9 @@
 package com.example.progressupdatedemo.repository
 
 import com.example.progressupdatedemo.data.DataOrException
-import com.example.progressupdatedemo.models.Note
-import com.example.progressupdatedemo.models.NoteList
-import com.example.progressupdatedemo.models.User
+import com.example.progressupdatedemo.domain.models.Note
+import com.example.progressupdatedemo.domain.models.NoteList
+import com.example.progressupdatedemo.domain.models.User
 import com.example.progressupdatedemo.utils.Constants
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
