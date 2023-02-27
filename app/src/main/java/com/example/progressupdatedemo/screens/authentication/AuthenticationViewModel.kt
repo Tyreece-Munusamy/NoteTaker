@@ -60,9 +60,8 @@ class AuthenticationViewModel @Inject constructor(
         onSuccess: () -> Unit,
         onFailure: () -> Unit,
     ) {
-        val firebaseSignUpUseCase = authenticationUseCases.firebaseSignUpUseCase.invoke(
-            email, password, firstName, lastName
-        )
+        val firebaseSignUpUseCase =
+            authenticationUseCases.firebaseSignUpUseCase.invoke(email, password)
 
         firebaseSignUpUseCase.collect {
             _signUpState.value = it

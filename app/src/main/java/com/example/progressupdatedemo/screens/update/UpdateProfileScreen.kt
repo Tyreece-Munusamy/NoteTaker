@@ -75,7 +75,11 @@ fun UpdateProfileScreen(
     val context = LocalContext.current
 
     BackHandler(true) {
-        showSaveChangesAlertDialog.value = true
+        if (isUserProfileUpdated) {
+            showSaveChangesAlertDialog.value = true
+        } else {
+            navigateToHomeScreenWithProfileTabSelected(navController)
+        }
     }
 
     LaunchedEffect(Unit) {

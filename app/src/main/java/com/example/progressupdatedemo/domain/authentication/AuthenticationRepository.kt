@@ -14,7 +14,5 @@ interface AuthenticationRepository {
     fun signUpWithFirebase(
         email: String,
         password: String,
-        firstName: String,
-        lastName: String,
     ): Flow<Response<Boolean>>
 }

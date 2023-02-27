@@ -1,5 +1,6 @@
 package com.example.progressupdatedemo.data
 
+import android.util.Log
 import com.example.progressupdatedemo.domain.authentication.AuthenticationRepository
 import com.example.progressupdatedemo.utils.Response
 import com.google.firebase.auth.FirebaseAuth
@@ -54,18 +55,18 @@ class AuthenticationRepositoryImpl @Inject constructor(
     override fun signUpWithFirebase(
         email: String,
         password: String,
-        firstName: String,
-        lastName: String,
     ): Flow<Response<Boolean>> = flow {
         operationSuccessful = false
         try {
             emit(Response.Loading)
             val task = firebaseAuth.createUserWithEmailAndPassword(email, password)
-            task.addOnSuccessListener {
+            val a = task.addOnSuccessListener {
+                Log.d("TAG", "signUpWithFirebase: $it")
                 operationSuccessful = true
             }.addOnFailureListener {
                 operationSuccessful = false
             }.await()
+            Log.d("TAG", "signUpWithFirebase: $a")
             emit(Response.Success(operationSuccessful))
         } catch (e: Exception) {
             emit(

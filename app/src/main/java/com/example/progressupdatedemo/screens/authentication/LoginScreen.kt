@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import com.example.progressupdatedemo.components.columns.ColumnWithCenteredConte
 import com.example.progressupdatedemo.components.buttons.AppButton
 import com.example.progressupdatedemo.components.textfields.EmailInputTextField
 import com.example.progressupdatedemo.components.textfields.PasswordInputTextField
+import com.example.progressupdatedemo.core.utils.TestTags
 import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
 import com.example.progressupdatedemo.domain.models.SignUpDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
@@ -126,7 +128,7 @@ private fun LoginButton(
 
 @Composable
 private fun EmailInputField(email: MutableState<String>) {
-    EmailInputTextField(emailState = email)
+    EmailInputTextField(modifier = Modifier.testTag(TestTags.LOGIN_SCREEN_EMAIL_INPUT_FIELD_TAG), emailState = email)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -140,13 +142,13 @@ private fun PasswordInputField(
         passwordVisibility = isPasswordVisible,
         onAction = KeyboardActions {
             keyboardController?.hide()
-        })
+        }, modifier = Modifier.testTag(TestTags.LOGIN_SCREEN_PASSWORD_INPUT_FIELD_TAG))
 }
 
 @Composable
 private fun LoginScreenAccountIcon() {
     Column(
-        modifier = Modifier
+        modifier = Modifier.testTag(TestTags.LOGIN_SCREEN_ACCOUNT_ICON_TAG)
             .fillMaxWidth()
             .padding(30.dp)
             .height(100.dp),
@@ -207,7 +209,7 @@ private fun showInvalidEmailOrPasswordToast(context: Context) {
 @Composable
 private fun LoginPromptText() {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag(TestTags.LOGIN_SCREEN_LOGIN_PROMPT_TEXT_TAG),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
@@ -243,7 +245,7 @@ private fun LoginScreenButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AppButton(
-            modifier = Modifier
+            modifier = Modifier.testTag(TestTags.LOGIN_SCREEN_LOGIN_BUTTON_TAG)
                 .padding(bottom = 10.dp, start = 10.dp, end = 10.dp, top = 10.dp)
                 .height(56.dp)
                 .fillMaxWidth(),
@@ -272,7 +274,7 @@ private fun SignUpPromptTextWithLink(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag(TestTags.LOGIN_SCREEN_SIGN_UP_PROMPT_TEXT_TAG),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {

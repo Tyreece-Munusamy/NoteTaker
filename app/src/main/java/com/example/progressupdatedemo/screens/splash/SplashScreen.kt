@@ -18,7 +18,6 @@ import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
 import com.example.progressupdatedemo.screens.authentication.AuthenticationViewModel
 import com.example.progressupdatedemo.utils.toJson
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 
 @Composable
