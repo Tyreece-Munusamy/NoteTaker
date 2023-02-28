@@ -28,7 +28,10 @@ fun SplashScreen(navController: NavController) {
 }
 
 @Composable
-private fun SplashScreenContent(navController: NavController, authenticationViewModel: AuthenticationViewModel = hiltViewModel()) {
+private fun SplashScreenContent(
+    navController: NavController,
+    authenticationViewModel: AuthenticationViewModel = hiltViewModel(),
+) {
     val scale = remember { Animatable(0f) }
     val isUserAuthenticated = authenticationViewModel.isUserAuthenticated
 

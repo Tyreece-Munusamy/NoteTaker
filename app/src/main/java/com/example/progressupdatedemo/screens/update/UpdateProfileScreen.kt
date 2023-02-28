@@ -146,9 +146,8 @@ private fun UpdateProfileScreenScaffold(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
             FirstNameInputField(firstNameFocusRequester, firstNameTextFieldValue)
-            LastNameInputField(firstNameFocusRequester, lastNameState, keyboardController)
+            LastNameInputField(lastNameState, keyboardController)
             NonFocusableEmailInputField(emailState)
 
             CancelAndSaveButtonRow(
@@ -202,13 +201,11 @@ private fun CancelAndSaveButtonRow(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun LastNameInputField(
-    firstNameFocusRequester: FocusRequester,
     lastNameState: MutableState<String>,
     keyboardController: SoftwareKeyboardController?,
 ) {
     OutlinedTextField(
         modifier = Modifier
-            .focusRequester(firstNameFocusRequester)
             .fillMaxWidth()
             .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         value = lastNameState.value,
@@ -235,7 +232,7 @@ private fun LastNameInputField(
 
 @Composable
 private fun NonFocusableEmailInputField(emailState: MutableState<String>) {
-    EmailInputTextField(emailState = emailState, enabled = false, labelId = "")
+    EmailInputTextField(modifier = Modifier.padding(bottom = 10.dp), emailState = emailState, enabled = false, labelId = "")
 }
 
 @Composable

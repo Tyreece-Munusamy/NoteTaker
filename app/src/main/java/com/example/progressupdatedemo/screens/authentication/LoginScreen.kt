@@ -202,7 +202,7 @@ private fun navigateToLoginScreenWithPresetEmail(navController: NavController) {
 
 private fun showInvalidEmailOrPasswordToast(context: Context) {
     Toast.makeText(
-        context, "Please enter a valid email address or password", Toast.LENGTH_SHORT
+        context, "Please enter a valid email or password", Toast.LENGTH_SHORT
     ).show()
 }
 
