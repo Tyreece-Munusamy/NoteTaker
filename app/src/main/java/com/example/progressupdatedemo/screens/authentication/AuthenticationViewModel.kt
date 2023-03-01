@@ -7,9 +7,6 @@ import com.example.progressupdatedemo.domain.use_cases.AuthenticationUseCases
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.example.progressupdatedemo.utils.Response
 import com.example.progressupdatedemo.utils.isValid
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +14,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthenticationViewModel @Inject constructor(
     private val repository: FirestoreRepository,
-    private val firebaseAuth: FirebaseAuth,
     private val authenticationUseCases: AuthenticationUseCases,
 ) : ViewModel() {
 
@@ -25,6 +21,7 @@ class AuthenticationViewModel @Inject constructor(
     val isUserAuthenticated get() = authenticationUseCases.isUserAuthenticatedUseCase()
 
     private val _signUpState = mutableStateOf<Response<Boolean>>(Response.Success(false))
+    private val _signInState = mutableStateOf<Response<Boolean>>(Response.Success(false))
 
     fun signIn(
         email: String,
@@ -34,7 +31,7 @@ class AuthenticationViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             isProcessingAuthenticationRequest.value = true
-            signInUserWithEmailAndPassword(email, password, onFailure, onSuccess)
+            signInUseCase(email, password, onFailure, onSuccess)
         }
     }
 
@@ -111,29 +108,23 @@ class AuthenticationViewModel @Inject constructor(
         return firstName.isValid() && lastName.isValid() && email.isValid() && password.isValid()
     }
 
-    private fun signInUserWithEmailAndPassword(
+    private suspend fun signInUseCase(
         email: String,
         password: String,
         onFailure: () -> Unit,
         onSuccess: () -> Unit,
     ) {
-        val taskWithAuthResult = firebaseAuth.signInWithEmailAndPassword(email, password)
-        invokeOnSuccessOrOnFailureOnTaskCompletion(taskWithAuthResult, onSuccess, onFailure)
-    }
+        val firebaseSignInUseCase =
+            authenticationUseCases.firebaseAuthenticationSignInUseCase.invoke(email, password)
 
-    private fun invokeOnSuccessOrOnFailureOnTaskCompletion(
-        taskWithAuthResult: Task<AuthResult>,
-        onSuccess: () -> Unit,
-        onFailure: () -> Unit,
-    ) {
-        taskWithAuthResult.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                onSuccess.invoke()
-                _signUpState.value = Response.Success(false)
-                isProcessingAuthenticationRequest.value = false
-            } else {
-                onFailure.invoke()
-                isProcessingAuthenticationRequest.value = false
+        firebaseSignInUseCase.collect {
+            _signInState.value = it
+            if (_signInState.value != Response.Loading) {
+                if (_signInState.value == Response.Success(true)) {
+                    onSuccess.invoke()
+                } else {
+                    onFailure.invoke()
+                }
             }
         }
     }

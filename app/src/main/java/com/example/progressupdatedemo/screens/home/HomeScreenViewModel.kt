@@ -7,6 +7,7 @@ import com.example.progressupdatedemo.data.DataOrException
 import com.example.progressupdatedemo.domain.models.Note
 import com.example.progressupdatedemo.domain.models.NoteList
 import com.example.progressupdatedemo.domain.models.User
+import com.example.progressupdatedemo.domain.use_cases.AuthenticationUseCases
 import com.example.progressupdatedemo.repository.FirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,7 @@ import javax.inject.Inject
 class HomeScreenViewModel @Inject constructor(
     private val repository: FirestoreRepository,
     private val firebaseAuth: FirebaseAuth,
+    private val authenticationUseCases: AuthenticationUseCases,
 ) : ViewModel() {
 
     val notes = mutableStateOf(DataOrException(NoteList(), false, Exception("")))
@@ -45,7 +47,7 @@ class HomeScreenViewModel @Inject constructor(
     fun signOut() {
         viewModelScope.launch {
             isLoggingOut.value = true
-            firebaseAuth.signOut()
+            authenticationUseCases.firebaseAuthenticationSignOutUseCase.invoke()
         }.invokeOnCompletion {
             isLoggingOut.value = false
         }
