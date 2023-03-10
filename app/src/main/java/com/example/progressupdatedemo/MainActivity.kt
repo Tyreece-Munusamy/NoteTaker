@@ -8,7 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.example.progressupdatedemo.components.columns.ColumnWithCenteredContent
+import com.example.progressupdatedemo.presentation.component.column.ColumnWithCenteredContent
 import com.example.progressupdatedemo.navigation.ApplicationNavigation
 import com.example.progressupdatedemo.ui.theme.ProgressUpdateDemoTheme
 import dagger.hilt.android.AndroidEntryPoint

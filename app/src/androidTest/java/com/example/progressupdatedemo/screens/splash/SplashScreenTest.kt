@@ -3,7 +3,7 @@ package com.example.progressupdatedemo.screens.splash
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import com.example.progressupdatedemo.MainActivity
-import com.example.progressupdatedemo.core.utils.TestTags
+import com.example.progressupdatedemo.core.constants.TestTags
 import com.example.progressupdatedemo.di.AppModule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest

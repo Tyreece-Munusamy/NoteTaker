@@ -9,12 +9,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.progressupdatedemo.MainActivity
-import com.example.progressupdatedemo.core.utils.TestTags
+import com.example.progressupdatedemo.core.constants.TestTags
 import com.example.progressupdatedemo.di.AppModule
-import com.example.progressupdatedemo.domain.models.LoginDetailsHolder
 import com.example.progressupdatedemo.navigation.Screen
+import com.example.progressupdatedemo.presentation.screen.authentication.LoginScreen
 import com.example.progressupdatedemo.ui.theme.ProgressUpdateDemoTheme
-import com.example.progressupdatedemo.utils.fromJson
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
@@ -47,10 +46,8 @@ class LoginScreenKtTest {
                         arguments = listOf(navArgument("detailsHolder") {
                             type = NavType.StringType
                         })
-                    ) { navBackStackEntry ->
-                        val detailsHolder = navBackStackEntry.arguments?.getString("detailsHolder")
-                            ?.fromJson(LoginDetailsHolder::class.java) ?: LoginDetailsHolder()
-                        LoginScreen(navController, detailsHolder)
+                    ) {
+                        LoginScreen(navController)
                     }
                 }
             }
@@ -59,7 +56,12 @@ class LoginScreenKtTest {
 
     @Test
     fun checkEmailInputField_itExists() {
-        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_EMAIL_INPUT_FIELD_TAG).assertExists()
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_EMAIL_INPUT_FIELD_TAG).assertExists().performClick()
+            .performTextInput("shiven3@gmail.com")
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_PASSWORD_INPUT_FIELD_TAG).performClick()
+            .performTextInput("shiven3")
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_LOGIN_BUTTON_TAG).performClick()
+            .assertIsEnabled()
     }
 
     @Test
@@ -85,5 +87,22 @@ class LoginScreenKtTest {
     @Test
     fun checkLoginPromptText_itExists() {
         composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_LOGIN_PROMPT_TEXT_TAG).assertExists()
+    }
+
+    @Test
+    fun checkLoginButtonIsEnabledWhenUserInputIsValid() {
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_EMAIL_INPUT_FIELD_TAG).performClick()
+            .performTextInput("shiven3@gmail.com")
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_PASSWORD_INPUT_FIELD_TAG).performClick()
+            .performTextInput("shiven3")
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_LOGIN_BUTTON_TAG).assertIsEnabled()
+    }
+
+    @Test
+    fun checkLoginButtonIsNotEnabledWhenUserInputIsNotValid() {
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_PASSWORD_INPUT_FIELD_TAG).performClick()
+            .performTextInput("shiven3")
+        composeRule.onNodeWithTag(TestTags.LOGIN_SCREEN_LOGIN_BUTTON_TAG).performClick()
+            .assertIsNotEnabled()
     }
 }
